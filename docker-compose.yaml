@@ -1,0 +1,78 @@
+version: "3.8"
+
+x-go-service: &go-service
+  command: sh -c "./bin/$${APP} -c ./configs/$${APP}/config.yaml"
+  depends_on:
+    - db
+    - migrator
+    - redis
+  image: golang:1.15
+  restart: always
+  volumes:
+    - ./bin:/app/bin
+    - ./doc:/app/doc
+    - ./configs:/app/configs
+  working_dir: /app
+
+services:
+  client_gateway_service:
+    <<: *go-service
+    environment:
+      APP: client_gateway_service
+      LOG_LEVEL: 5
+    ports:
+      - 8080:80
+
+  nsi_service:
+    <<: *go-service
+    environment:
+      APP: nsi_service
+      LOG_LEVEL: 5
+    depends_on:
+      - db_manager_service
+    ports:
+      - 8081:80
+
+  db_manager_service:
+    <<: *go-service
+    environment:
+      APP: db_manager_service
+      LOG_LEVEL: 5
+    ports:
+      - 8082:80
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: cafe
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  migrator:
+    build:
+      args:
+        MIGRATION_DIR_ARG: migrations
+        MIGRATION_TARGET_DIR_ARG: migrations
+      context: .
+      dockerfile: build/docker/migrator/Dockerfile
+    command: >
+      ./wait-for-pg.sh db 5432 cafe postgres postgres
+      sql-migrate up -config=dbconfig.yml
+    depends_on:
+      - db
+    volumes:
+      - ./dbconfig.yml:/app/dbconfig.yml
+      - ./migrations:/app/migrations
+      - ./scripts/wait-for-pg.sh:/app/wait-for-pg.sh
+    working_dir: /app
+
+networks:
+  default:
+    driver: bridge
+
+volumes:
+  pgdata:

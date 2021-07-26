@@ -1,0 +1,30 @@
+---
+listen: :80
+
+docPath: /app/doc
+
+sentry_dsn: ""
+sentry_env: localhost
+
+db:
+  host: db
+  port: 5432
+  user: postgres
+  password: postgres
+  name: cafe
+  pool_size: 200
+
+logger:
+  defaultchannel: stack
+  level: ${LOG_LEVEL}
+logChannels:
+  stack:
+    driver: stack
+    extra:
+      channels:
+        - name: stderr
+  stderr:
+    driver: zap
+
+db_manager_url: http://db_manager_service/v1
+nsi_url: http://nsi_service/v1

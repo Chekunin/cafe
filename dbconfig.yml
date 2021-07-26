@@ -1,0 +1,13 @@
+development:
+  dialect: postgres
+  datasource: host=db dbname=cafe user=postgres password=postgres sslmode=disable
+  dir: migrations
+  table: migrations
+  schema: public
+
+production:
+  dialect: postgres
+  datasource: postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:8432/${DB_NAME}?sslmode=disable
+  dir: migrations
+  table: migrations
+  schema: public
