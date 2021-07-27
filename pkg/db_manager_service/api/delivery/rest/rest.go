@@ -35,7 +35,6 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	router.GET("/reviews", r.handlerGetAllReviews)
 	router.GET("/review-medias", r.handlerGetAllReviewMedias)
 	router.GET("/users", r.handlerGetAllUsers)
-	router.GET("/users", r.handlerGetAllUsers)
 	router.GET("/user-by-name/:name", r.handlerGetUserByName)
 	router.GET("/user-subscriptions", r.handlerGetAllUserSubscriptions)
 }

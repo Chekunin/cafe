@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"git.avto-pass.net/AP/smart-mobility/merlin.git/pkg/common"
+	"cafe/pkg/common"
 	"github.com/stretchr/testify/assert"
 )
 

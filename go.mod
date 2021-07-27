@@ -3,7 +3,6 @@ module cafe
 go 1.15
 
 require (
-	git.avto-pass.net/AP/smart-mobility/merlin.git v1.3.2 // indirect
 	github.com/Chekunin/wraperr v0.1.1
 	github.com/getsentry/sentry-go v0.11.0
 	github.com/gin-contrib/cors v1.3.1

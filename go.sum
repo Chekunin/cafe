@@ -3,8 +3,6 @@ cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.38.0/go.mod h1:990N+gfupTy94rShfmMCWGDn0LpTmnzTp2qbd1dvSRU=
 firebase.google.com/go v3.10.0+incompatible/go.mod h1:xlah6XbEyW6tbfSklcfe5FHJIwjt8toICdV5Wh9ptHs=
-git.avto-pass.net/AP/smart-mobility/merlin.git v1.3.2 h1:7V5F9uDY14pxMRiuRrotH7M9ebFPpgmIOxoffMG900s=
-git.avto-pass.net/AP/smart-mobility/merlin.git v1.3.2/go.mod h1:Uy2de21Cbpx3Q9HQPUOxYxqwvrzAPSGhHMvjE9Fxzz4=
 github.com/360EntSecGroup-Skylar/excelize/v2 v2.2.0/go.mod h1:Uwb0d1GgxJieUWZG5WylTrgQ2SrldfjagAxheU8W6MQ=
 github.com/AndreasBriese/bbloom v0.0.0-20190306092124-e2d15f34fcf9/go.mod h1:bOvUY6CB00SOBii9/FifXqc0awNKxLFCL/+pkDPuyl8=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
