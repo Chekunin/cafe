@@ -4,15 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	wrapErr "github.com/Chekunin/wraperr"
 	"github.com/go-redis/redis/v8"
 	"time"
 )
 
 type AuthInterface interface {
-	CreateAuth(string, *TokenDetails) error
+	CreateAuth(string, TokenDetails) error
 	FetchAuth(string) (string, error)
 	DeleteRefresh(string) error
-	DeleteTokens(*AccessDetails) error
+	DeleteTokens(AccessDetails) error
 }
 
 type service struct {
@@ -26,11 +27,12 @@ func NewAuth(client *redis.Client) *service {
 }
 
 type TokenDetails struct {
-	AccessToken         string
+	AccessToken        string
+	AccessTokenUuid    string
+	AccessTokenExpires int64
+
 	RefreshToken        string
-	AccessTokenUuid     string
 	RefreshTokenUuid    string
-	AccessTokenExpires  int64
 	RefreshTokenExpires int64
 }
 
@@ -40,7 +42,7 @@ type AccessDetails struct {
 }
 
 //Save token metadata to Redis
-func (s service) CreateAuth(userId string, td *TokenDetails) error {
+func (s service) CreateAuth(userId string, td TokenDetails) error {
 	at := time.Unix(td.AccessTokenExpires, 0)
 	rt := time.Unix(td.RefreshTokenExpires, 0)
 	now := time.Now()
@@ -76,15 +78,16 @@ func (s service) DeleteRefresh(refreshUuid string) error {
 	return nil
 }
 
-//Once a user row in the token table
-func (s service) DeleteTokens(authD *AccessDetails) error {
-	refreshUuid := fmt.Sprintf("%s++%s", authD.TokenUuid, authD.UserID)
+func (s service) DeleteTokens(authD AccessDetails) error {
 	deletedAt, err := s.client.Del(context.TODO(), authD.TokenUuid).Result()
 	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("redis client del access token with uuid=%s", authD.TokenUuid), err)
 		return err
 	}
+	refreshUuid := fmt.Sprintf("%s++%s", authD.TokenUuid, authD.UserID)
 	deletedRt, err := s.client.Del(context.TODO(), refreshUuid).Result()
 	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("redis client del refresh token with uuid=%s", refreshUuid), err)
 		return err
 	}
 	if deletedAt != 1 || deletedRt != 1 {

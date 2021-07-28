@@ -36,7 +36,7 @@ func (u Usecase) Logout(ctx context.Context, token string) error {
 func (u Usecase) RefreshToken(ctx context.Context, refreshToken string) (models.Tokens, error) {
 	tokens, err := u.clientSso.RefreshToken(ctx, refreshToken)
 	if err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("clientSso RefreshToken"), nil)
+		err = wrapErr.NewWrapErr(fmt.Errorf("clientSso RefreshToken"), err)
 		return models.Tokens{}, err
 	}
 	return tokens, nil

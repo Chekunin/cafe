@@ -12,10 +12,8 @@ import (
 	"errors"
 	"fmt"
 	wrapErr "github.com/Chekunin/wraperr"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/go-redis/redis/v8"
 	"golang.org/x/crypto/bcrypt"
-	"os"
 	"strconv"
 )
 
@@ -28,14 +26,6 @@ type ClientSso struct {
 type NewClientSsoParams struct {
 	DbManager db_manager.IDBManager
 	Redis     *redis.Client
-}
-
-var signingKey = "merlinSigningKey"        //TODO cfg
-var signingMethod = jwt.SigningMethodHS256 //TODO cfg
-
-type tokenClaims struct {
-	UserID int `json:"user_id"`
-	jwt.StandardClaims
 }
 
 func NewClientSso(params NewClientSsoParams) (client_sso.IClientSso, error) {
@@ -51,7 +41,6 @@ func NewClientSso(params NewClientSsoParams) (client_sso.IClientSso, error) {
 }
 
 func (c ClientSso) Login(ctx context.Context, userName string, password string) (ssoModels.Tokens, error) {
-	// todo: здесь же где-то должен делать маппинг ошибок
 	user, err := c.dbManager.GetUserByUserName(ctx, userName)
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetUserByUserName username=%s", userName), err)
@@ -71,8 +60,7 @@ func (c ClientSso) Login(ctx context.Context, userName string, password string) 
 		err = wrapErr.NewWrapErr(fmt.Errorf("tk CreateToken for userID=%d", user.ID), err)
 		return ssoModels.Tokens{}, err
 	}
-	saveErr := c.rd.CreateAuth(strconv.Itoa(user.ID), ts)
-	if saveErr != nil {
+	if err := c.rd.CreateAuth(strconv.Itoa(user.ID), ts); err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("rs CreateAuth for userID=%d", user.ID), err)
 		return ssoModels.Tokens{}, err
 	}
@@ -85,68 +73,52 @@ func (c ClientSso) Login(ctx context.Context, userName string, password string) 
 }
 
 func (c ClientSso) Logout(ctx context.Context, token string) error {
-	metadata, _ := c.tk.ExtractTokenMetadata(token)
-	if metadata != nil {
-		deleteErr := c.rd.DeleteTokens(metadata)
-		if deleteErr != nil {
-			deleteErr = wrapErr.NewWrapErr(fmt.Errorf("rd DeleteTokens"), deleteErr)
-			return deleteErr
-		}
+	metadata, err := c.tk.ParseAccessDetails(token)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("tk ParseAccessDetails token=%s", token), err)
+		return err
+	}
+	if err := c.rd.DeleteTokens(metadata); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("rd DeleteTokens"), err)
+		return err
 	}
 	return nil
 }
 
 func (c ClientSso) RefreshToken(ctx context.Context, refreshToken string) (ssoModels.Tokens, error) {
-	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte(os.Getenv("REFRESH_SECRET")), nil
-	})
-	//if there is an error, the token must have expired
+	token, err := auth.VerifyToken(refreshToken)
 	if err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("jwt parse"), err)
+		err = wrapErr.NewWrapErr(fmt.Errorf("VerifyToken token=%s", refreshToken), err)
 		return ssoModels.Tokens{}, err
 	}
-	if _, ok := token.Claims.(jwt.Claims); !ok && !token.Valid {
-		err = wrapErr.NewWrapErr(fmt.Errorf("token is invalid or incorrect"), err)
+	claims, ok := token.Claims.(*auth.TokenClaims)
+	if !ok || !token.Valid {
+		err := wrapErr.NewWrapErr(fmt.Errorf("token is invalid or incorrect"), nil)
 		return ssoModels.Tokens{}, err
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok || !token.Valid {
-		err = wrapErr.NewWrapErr(fmt.Errorf("token claims to jwt.MapClaims"), err)
+	if err := c.rd.DeleteRefresh(claims.TokenUuid); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("DeleteRefresh tokenUuid=%s", claims.TokenUuid), err)
 		return ssoModels.Tokens{}, err
 	}
-	refreshUuid, ok := claims["refresh_uuid"].(string)
-	if !ok {
-		//
+	tokenDetails, err := c.tk.CreateToken(claims.UserID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("CreateToken userID=%s", claims.UserID), err)
+		return ssoModels.Tokens{}, err
 	}
-	userId, roleOk := claims["user_id"].(string)
-	if !roleOk {
-		//
-	}
-	delErr := c.rd.DeleteRefresh(refreshUuid)
-	if delErr != nil {
-		//
-	}
-	ts, createErr := c.tk.CreateToken(userId)
-	if createErr != nil {
-		//
-	}
-	saveErr := c.rd.CreateAuth(userId, ts)
-	if saveErr != nil {
-		//
+	if err := c.rd.CreateAuth(claims.UserID, tokenDetails); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("CreateAuth userID=%s, tokenDetails=%+v", claims.UserID, tokenDetails), err)
+		return ssoModels.Tokens{}, err
 	}
 	tokens := ssoModels.Tokens{
-		AccessToken:  ts.AccessToken,
-		RefreshToken: ts.RefreshToken,
+		AccessToken:  tokenDetails.AccessToken,
+		RefreshToken: tokenDetails.RefreshToken,
 	}
 	return tokens, nil
 }
 
 func (c ClientSso) CheckPermission(ctx context.Context, method, path, token string) (bool, error) {
-	if err := auth.TokenValid(token); err != nil {
+	if err := auth.IsTokenValid(token); err != nil {
 		err = wrapErr.NewWrapErr(errs.ErrIncorrectToken, err)
 		return false, err
 	}
@@ -168,25 +140,6 @@ func (c ClientSso) GetUserID(ctx context.Context, token string) (int, error) {
 	//}
 	//return claims.UserID, nil
 	panic("implement me")
-}
-
-func (c ClientSso) getTokenClaims(token string) (*tokenClaims, error) {
-	parsedToken, err := jwt.ParseWithClaims(token, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(signingKey), nil
-	})
-	if err != nil {
-		return nil, fmt.Errorf("error parsing token: %s", err)
-	}
-
-	if signingMethod.Alg() != parsedToken.Header["alg"] {
-		return nil, fmt.Errorf("error validating token algorithm: expected %s signing method but token specified %s", signingMethod.Alg(), parsedToken.Header["alg"])
-	}
-
-	if claims, ok := parsedToken.Claims.(*tokenClaims); ok && parsedToken.Valid {
-		return claims, nil
-	}
-
-	return nil, fmt.Errorf("token is invalid")
 }
 
 func checkUserPassword(user models.User, password string) bool {
