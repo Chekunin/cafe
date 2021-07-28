@@ -1,7 +1,7 @@
 version: "3.8"
 
 x-go-service: &go-service
-  command: sh -c "./bin/$${APP} -c ./configs/$${APP}/config.yaml"
+#  command: ["./bin/$${APP}", "-c", "./configs/$${APP}/config.yaml"]
   depends_on:
     - db
     - migrator
@@ -13,10 +13,12 @@ x-go-service: &go-service
     - ./doc:/app/doc
     - ./configs:/app/configs
   working_dir: /app
+  stop_signal: SIGTERM
 
 services:
   client_gateway_service:
     <<: *go-service
+    command: ["./bin/client_gateway_service", "-c", "./configs/client_gateway_service/config.yaml"]
     environment:
       APP: client_gateway_service
       LOG_LEVEL: 5
@@ -25,6 +27,7 @@ services:
 
   nsi_service:
     <<: *go-service
+    command: ["./bin/nsi_service", "-c", "./configs/nsi_service/config.yaml"]
     environment:
       APP: nsi_service
       LOG_LEVEL: 5
@@ -35,11 +38,22 @@ services:
 
   db_manager_service:
     <<: *go-service
+    command: ["./bin/db_manager_service", "-c", "./configs/db_manager_service/config.yaml"]
     environment:
       APP: db_manager_service
       LOG_LEVEL: 5
     ports:
       - 8082:80
+
+  client_sso_service:
+    <<: *go-service
+    command: ["./bin/client_sso_service", "-c", "./configs/client_sso_service/config.yaml"]
+    environment:
+      APP: client_sso_service
+      LOG_LEVEL: 5
+    ports:
+      - 8083:80
+    stop_signal: SIGTERM
 
   db:
     image: postgres:13
@@ -69,6 +83,11 @@ services:
       - ./migrations:/app/migrations
       - ./scripts/wait-for-pg.sh:/app/wait-for-pg.sh
     working_dir: /app
+
+  redis:
+    image: redis:5-alpine
+    ports:
+      - 6379:6379
 
 networks:
   default:

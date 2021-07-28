@@ -64,5 +64,5 @@ start: build-absent docker/create-network ## Run docker conteiner with App
 		$(MAKE) --no-print-directory db/seed; \
 	fi
 
-stop: ## Stop docker conteiner with App
+stop: ## Stop docker container with App
 	@docker-compose down --remove-orphans

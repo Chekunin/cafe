@@ -1,0 +1,28 @@
+---
+listen: :80
+
+docPath: /app/doc
+
+sentry_dsn: ""
+sentry_env: localhost
+
+logger:
+  defaultchannel: stack
+  level: ${LOG_LEVEL}
+logChannels:
+  stack:
+    driver: stack
+    extra:
+      channels:
+        - name: stderr
+  stderr:
+    driver: zap
+
+db_manager_url: http://db_manager_service/v1
+
+redis:
+  host: redis
+  port: 6379
+  user: ""
+  password: ""
+  db: 0

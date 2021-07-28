@@ -1,6 +1,9 @@
-package nsi_service
+package client_sso_service
 
 import (
+	"cafe/pkg/client_sso/memory"
+	"cafe/pkg/client_sso_service/api/delivery/rest"
+	"cafe/pkg/client_sso_service/api/usecase"
 	"cafe/pkg/common"
 	"cafe/pkg/common/catcherr"
 	log "cafe/pkg/common/logman"
@@ -8,9 +11,6 @@ import (
 	_ "cafe/pkg/common/logman/drivers/zap"
 	"cafe/pkg/common/utils"
 	httpDbManaber "cafe/pkg/db_manager/http"
-	nsiMemory "cafe/pkg/nsi/memory"
-	"cafe/pkg/nsi_service/api/delivery/rest"
-	"cafe/pkg/nsi_service/api/usecase"
 	"context"
 	"errors"
 	"fmt"
@@ -18,6 +18,8 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/go-pg/pg/v9"
+	"github.com/go-redis/redis/v8"
 	"net/http"
 	"os"
 	"os/signal"
@@ -33,6 +35,24 @@ type Config struct {
 	Logger         log.Config                  `yaml:"logger"`
 	LoggerChannels log.ChannelArbitraryConfigs `yaml:"logChannels"`
 	DbManagerURL   string                      `yaml:"db_manager_url"`
+	Redis          RedisConfig                 `yaml:"redis"`
+}
+
+type DbConfig struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	Name     string `yaml:"name"`
+	PoolSize int    `yaml:"pool_size"`
+}
+
+type RedisConfig struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	DB       int    `yaml:"db"`
 }
 
 type App struct {
@@ -40,6 +60,7 @@ type App struct {
 	usecase  *usecase.Usecase
 	route    *gin.Engine
 	doneChan chan bool
+	db       *pg.DB
 }
 
 func NewApp(config Config) *App {
@@ -95,17 +116,27 @@ func NewApp(config Config) *App {
 
 	dbManager, err := httpDbManaber.NewHttpDbManager(config.DbManagerURL)
 	if err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("NewDbManager"), err)
+		err = wrapErr.NewWrapErr(fmt.Errorf("NewHttpDbManager"), err)
 		catcherr.AsCritical().CatchAndExit(err)
 	}
 
-	nsi, err := nsiMemory.NewNSI(nsiMemory.NewNSIParams{DbManager: dbManager})
+	rds := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", config.Redis.Host, config.Redis.Port),
+		Username: config.Redis.User,
+		Password: config.Redis.Password,
+		DB:       config.Redis.DB,
+	})
+
+	clientSso, err := memory.NewClientSso(memory.NewClientSsoParams{
+		DbManager: dbManager,
+		Redis:     rds,
+	})
 	if err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("NewNSI"), err)
+		err = wrapErr.NewWrapErr(fmt.Errorf("NewClientSso"), err)
 		catcherr.AsCritical().CatchAndExit(err)
 	}
 
-	usecase := usecase.NewUsecase(nsi)
+	usecase := usecase.NewUsecase(clientSso)
 	rest.NewRest(r.Group("/v1"), usecase)
 
 	app := App{
@@ -147,10 +178,15 @@ func (a *App) Run() {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
+	if err := a.db.Close(); err != nil {
+		catcherr.Catch(wrapErr.NewWrapErr(fmt.Errorf("close db"), err))
+	}
+
 	if err := srv.Shutdown(ctx); err != nil {
 		catcherr.Catch(wrapErr.NewWrapErr(fmt.Errorf("Server forced to shutdown"), err))
 	}
 
+	<-ctx.Done()
 	log.Info("Server exiting")
 }
 

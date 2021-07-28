@@ -1,9 +1,14 @@
 package client_sso
 
-import "context"
+import (
+	"cafe/pkg/client_sso/models"
+	"context"
+)
 
 type IClientSso interface {
-	Login(ctx context.Context, userName string, password string) (string, error)
+	Login(ctx context.Context, userName string, password string) (models.Tokens, error)
+	Logout(ctx context.Context, token string) error
+	RefreshToken(ctx context.Context, refreshToken string) (models.Tokens, error)
 	CheckPermission(ctx context.Context, method, path, token string) (bool, error)
 	GetUserID(ctx context.Context, token string) (int, error)
 }
