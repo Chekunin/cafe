@@ -61,7 +61,10 @@ func (s service) CreateAuth(userId string, td TokenDetails) error {
 	return nil
 }
 
-//Check the metadata saved
+// делает поиск в редисе токена с таким uuid
+// делается для того, чтобы если пользователь разлогинился, мы могли диактиввировать его старый токен,
+// удалив из базы.
+// если в БД токена нет, значит он диактивирован.
 func (s service) FetchAuth(tokenUuid string) (string, error) {
 	userID, err := s.client.Get(context.TODO(), tokenUuid).Result()
 	if err != nil {

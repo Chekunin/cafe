@@ -118,8 +118,16 @@ func (c ClientSso) RefreshToken(ctx context.Context, refreshToken string) (ssoMo
 }
 
 func (c ClientSso) CheckPermission(ctx context.Context, method, path, token string) (bool, error) {
-	if err := auth.IsTokenValid(token); err != nil {
+	accessDetails, err := c.tk.ParseAccessDetails(token)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("ParseAccessDetails token=%s", token), err)
 		err = wrapErr.NewWrapErr(errs.ErrIncorrectToken, err)
+		return false, err
+	}
+
+	_, err = c.rd.FetchAuth(accessDetails.TokenUuid)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("FetchAuth tokenUuid=%s", accessDetails.TokenUuid), err)
 		return false, err
 	}
 

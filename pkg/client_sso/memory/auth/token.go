@@ -14,6 +14,11 @@ var signingMethod = jwt.SigningMethodHS256
 var accessTokenSecretKey = "merlinSigningKey"
 var refreshTokenSecretKey = "merlinSigningKey"
 
+//var accessTokenExpires = time.Minute * 30
+//var refreshTokenExpires = time.Hour * 24 * 7
+var accessTokenExpires = time.Minute * 1
+var refreshTokenExpires = time.Minute * 5
+
 type tokenService struct{}
 
 func NewToken() *tokenService {
@@ -36,7 +41,7 @@ type TokenClaims struct {
 func (t *tokenService) CreateToken(userID string) (TokenDetails, error) {
 	tokenDetails := TokenDetails{}
 
-	tokenDetails.AccessTokenExpires = time.Now().Add(time.Minute * 30).Unix()
+	tokenDetails.AccessTokenExpires = time.Now().Add(accessTokenExpires).Unix()
 	tokenDetails.AccessTokenUuid = uuid.New().String()
 	atClaims := &TokenClaims{
 		UserID:    userID,
@@ -53,7 +58,7 @@ func (t *tokenService) CreateToken(userID string) (TokenDetails, error) {
 		return TokenDetails{}, err
 	}
 
-	tokenDetails.RefreshTokenExpires = time.Now().Add(time.Hour * 24 * 7).Unix()
+	tokenDetails.RefreshTokenExpires = time.Now().Add(refreshTokenExpires).Unix()
 	tokenDetails.RefreshTokenUuid = tokenDetails.AccessTokenUuid + "++" + userID
 	rtClaims := &TokenClaims{
 		UserID:    userID,
@@ -77,11 +82,7 @@ func (t *tokenService) ParseAccessDetails(tokenString string) (AccessDetails, er
 		return AccessDetails{}, err
 	}
 
-	fmt.Printf("%+v\n", token.Claims)
 	claims, ok := token.Claims.(*TokenClaims)
-	if !ok {
-		fmt.Printf("not ok! =(\n")
-	}
 	if !ok || !token.Valid {
 		err := wrapErr.NewWrapErr(fmt.Errorf("token is invalid"), nil)
 		return AccessDetails{}, err
@@ -90,17 +91,6 @@ func (t *tokenService) ParseAccessDetails(tokenString string) (AccessDetails, er
 		TokenUuid: claims.TokenUuid,
 		UserID:    claims.UserID,
 	}, nil
-}
-
-func IsTokenValid(tokenString string) error {
-	token, err := VerifyToken(tokenString)
-	if err != nil {
-		return err
-	}
-	if _, ok := token.Claims.(jwt.Claims); !ok && !token.Valid {
-		return err
-	}
-	return nil
 }
 
 // принимает строку с token-ом, возвращает его распарсенный объект

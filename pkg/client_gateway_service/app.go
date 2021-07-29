@@ -3,6 +3,7 @@ package client_gateway_service
 import (
 	"cafe/pkg/client_gateway_service/delivery/rest"
 	"cafe/pkg/client_gateway_service/usecase"
+	httpClientSso "cafe/pkg/client_sso/http"
 	"cafe/pkg/common"
 	"cafe/pkg/common/catcherr"
 	log "cafe/pkg/common/logman"
@@ -35,6 +36,7 @@ type Config struct {
 	LoggerChannels log.ChannelArbitraryConfigs `yaml:"logChannels"`
 	DbManagerURL   string                      `yaml:"db_manager_url"`
 	NsiURL         string                      `yaml:"nsi_url"`
+	ClientSsoURL   string                      `yaml:"client_sso_url"`
 }
 
 type App struct {
@@ -98,7 +100,7 @@ func NewApp(config Config) *App {
 
 	dbManager, err := httpDbManager.NewHttpDbManager(config.DbManagerURL)
 	if err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("NewDbManager"), err)
+		err = wrapErr.NewWrapErr(fmt.Errorf("NewHttpDbManager"), err)
 		catcherr.AsCritical().CatchAndExit(err)
 	}
 
@@ -108,11 +110,18 @@ func NewApp(config Config) *App {
 		catcherr.AsCritical().CatchAndExit(err)
 	}
 
+	clientSso, err := httpClientSso.NewHttpClientSso(config.ClientSsoURL)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("NewHttpClientSso"), err)
+		catcherr.AsCritical().CatchAndExit(err)
+	}
+
 	usecase := usecase.NewUsecase(usecase.NewUsecaseParams{
 		DbManager: dbManager,
 		Nsi:       nsi,
+		ClientSso: clientSso,
 	})
-	rest.NewRest(r.Group("/v1"), usecase)
+	rest.NewRest(r.Group("/v1"), usecase, clientSso)
 
 	app := App{
 		config:   config,

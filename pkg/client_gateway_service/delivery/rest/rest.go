@@ -2,6 +2,7 @@ package rest
 
 import (
 	"cafe/pkg/client_gateway_service/usecase"
+	"cafe/pkg/client_sso"
 	"fmt"
 	wrapErr "github.com/Chekunin/wraperr"
 	"github.com/gin-gonic/gin"
@@ -9,11 +10,15 @@ import (
 )
 
 type rest struct {
-	Usecase *usecase.Usecase
+	usecase   *usecase.Usecase
+	clientSso client_sso.IClientSso
 }
 
-func NewRest(router *gin.RouterGroup, usecase *usecase.Usecase) *rest {
-	rest := &rest{Usecase: usecase}
+func NewRest(router *gin.RouterGroup, usecase *usecase.Usecase, clientSso client_sso.IClientSso) *rest {
+	rest := &rest{
+		usecase:   usecase,
+		clientSso: clientSso,
+	}
 	rest.routes(router)
 	return rest
 }
@@ -21,6 +26,9 @@ func NewRest(router *gin.RouterGroup, usecase *usecase.Usecase) *rest {
 func (r *rest) routes(router *gin.RouterGroup) {
 	router.GET("/places", r.handlerGetPlaces)
 	router.GET("/place-by-id/:id", r.handlerGetPlaceByID)
+
+	authorized := router.Group("/")
+	authorized.Use(r.authMiddleware())
 }
 
 func (r *rest) handlerGetPlaces(c *gin.Context) {
@@ -36,7 +44,7 @@ func (r *rest) handlerGetPlaces(c *gin.Context) {
 		return
 	}
 
-	places, err := r.Usecase.GetPlaces(c.Request.Context(), req.LeftLng, req.RightLng, req.TopLat, req.BottomLat)
+	places, err := r.usecase.GetPlaces(c.Request.Context(), req.LeftLng, req.RightLng, req.TopLat, req.BottomLat)
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetPlaces"), err)
 		c.AbortWithError(GetHttpCode(err), err)
@@ -56,7 +64,7 @@ func (r *rest) handlerGetPlaceByID(c *gin.Context) {
 		return
 	}
 
-	places, err := r.Usecase.GetPlaceByID(c.Request.Context(), req.PlaceID)
+	places, err := r.usecase.GetPlaceByID(c.Request.Context(), req.PlaceID)
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetPlaceByID"), err)
 		c.AbortWithError(GetHttpCode(err), err)

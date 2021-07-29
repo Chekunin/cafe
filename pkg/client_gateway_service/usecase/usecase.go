@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"cafe/pkg/client_sso"
 	"cafe/pkg/db_manager"
 	"cafe/pkg/models"
 	"cafe/pkg/nsi"
@@ -12,17 +13,20 @@ import (
 type Usecase struct {
 	dbManager db_manager.IDBManager
 	nsi       nsi.INSI
+	clientSso client_sso.IClientSso
 }
 
 type NewUsecaseParams struct {
 	DbManager db_manager.IDBManager
 	Nsi       nsi.INSI
+	ClientSso client_sso.IClientSso
 }
 
 func NewUsecase(params NewUsecaseParams) *Usecase {
 	return &Usecase{
 		dbManager: params.DbManager,
 		nsi:       params.Nsi,
+		clientSso: params.ClientSso,
 	}
 }
 

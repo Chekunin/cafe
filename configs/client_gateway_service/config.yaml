@@ -28,3 +28,4 @@ logChannels:
 
 db_manager_url: http://db_manager_service/v1
 nsi_url: http://nsi_service/v1
+client_sso_url: http://client_sso_service/v1

@@ -2,6 +2,7 @@ package rest
 
 import (
 	"cafe/pkg/client_sso_service/api/usecase"
+	"cafe/pkg/common/utils"
 	"fmt"
 	wrapErr "github.com/Chekunin/wraperr"
 	"github.com/gin-gonic/gin"
@@ -42,8 +43,7 @@ func (r rest) handlerLogin(c *gin.Context) {
 		c.AbortWithError(GetHttpCode(err), err)
 		return
 	}
-	//c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
-	c.JSON(http.StatusOK, resp)
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
 }
 
 func (r rest) handlerLogout(c *gin.Context) {
@@ -81,8 +81,7 @@ func (r rest) handlerRefreshToken(c *gin.Context) {
 		c.AbortWithError(GetHttpCode(err), err)
 		return
 	}
-	//c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
-	c.JSON(http.StatusOK, resp)
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
 }
 
 func (r rest) handlerCheckPermission(c *gin.Context) {
@@ -103,6 +102,5 @@ func (r rest) handlerCheckPermission(c *gin.Context) {
 		c.AbortWithError(GetHttpCode(err), err)
 		return
 	}
-	//c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
-	c.JSON(http.StatusOK, resp)
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
 }
