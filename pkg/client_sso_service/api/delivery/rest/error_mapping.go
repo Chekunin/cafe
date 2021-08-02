@@ -9,7 +9,7 @@ import (
 func GetHttpCode(e error) int {
 	var err common.Err
 	if errors.As(e, &err) {
-		if code, has := errMappingToHttpCode[err]; has {
+		if code, has := errMappingToHttpCode[err.Code]; has {
 			return code
 		}
 	}
@@ -17,6 +17,6 @@ func GetHttpCode(e error) int {
 }
 
 // todo: заполнить
-var errMappingToHttpCode = map[error]int{
-	errs.ErrIncorrectLoginOrPassword: 400,
+var errMappingToHttpCode = map[int]int{
+	errs.ErrIncorrectLoginOrPassword.Code: 400,
 }

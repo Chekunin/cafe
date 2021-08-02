@@ -21,6 +21,12 @@ type IDBManager interface {
 	GetAllReviews(ctx context.Context) ([]models.Review, error)
 	GetAllReviewMedias(ctx context.Context) ([]models.ReviewMedia, error)
 	GetAllUsers(ctx context.Context) ([]models.User, error)
+	GetUserByUserID(ctx context.Context, userID int) (models.User, error)
 	GetUserByUserName(ctx context.Context, userName string) (models.User, error)
+	GetUserByVerifiedPhone(ctx context.Context, phone string) (models.User, error)
+	CreateUser(ctx context.Context, user *models.User) error
 	GetAllUserSubscriptions(ctx context.Context) ([]models.UserSubscription, error)
+	GetActualUserPhoneCodeByUserID(ctx context.Context, userID int) (models.UserPhoneCode, error)
+	CreateUserPhoneCode(ctx context.Context, userPhoneCode *models.UserPhoneCode) error
+	ActivateUserPhone(ctx context.Context, userPhoneCodeID int) error
 }

@@ -3,11 +3,14 @@ package rest
 import (
 	"cafe/pkg/client_gateway_service/usecase"
 	"cafe/pkg/client_sso"
+	"cafe/pkg/client_sso/models"
 	"fmt"
 	wrapErr "github.com/Chekunin/wraperr"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
+
+const modelTag string = "api"
 
 type rest struct {
 	usecase   *usecase.Usecase
@@ -24,11 +27,17 @@ func NewRest(router *gin.RouterGroup, usecase *usecase.Usecase, clientSso client
 }
 
 func (r *rest) routes(router *gin.RouterGroup) {
+	router.POST("/auth/login", r.handlerLogin)
+	router.POST("/auth/refresh-token", r.handlerRefreshToken)
+	router.POST("/auth/signup", r.handlerSignUp)
+	router.POST("/auth/approve-phone", r.handlerApprovePhone)
+
 	router.GET("/places", r.handlerGetPlaces)
 	router.GET("/place-by-id/:id", r.handlerGetPlaceByID)
 
 	authorized := router.Group("/")
 	authorized.Use(r.authMiddleware())
+	authorized.POST("/logout", r.handlerLogout)
 }
 
 func (r *rest) handlerGetPlaces(c *gin.Context) {
@@ -51,7 +60,7 @@ func (r *rest) handlerGetPlaces(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, places)
+	c.JSON(http.StatusOK, models.Convert(places, modelTag))
 }
 
 func (r *rest) handlerGetPlaceByID(c *gin.Context) {
@@ -71,5 +80,5 @@ func (r *rest) handlerGetPlaceByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, places)
+	c.JSON(http.StatusOK, models.Convert(places, modelTag))
 }

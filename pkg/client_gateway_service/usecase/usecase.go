@@ -8,6 +8,8 @@ import (
 	"context"
 	"fmt"
 	wrapErr "github.com/Chekunin/wraperr"
+	"math/rand"
+	"time"
 )
 
 type Usecase struct {
@@ -23,6 +25,8 @@ type NewUsecaseParams struct {
 }
 
 func NewUsecase(params NewUsecaseParams) *Usecase {
+	rand.Seed(time.Now().UnixNano())
+
 	return &Usecase{
 		dbManager: params.DbManager,
 		nsi:       params.Nsi,

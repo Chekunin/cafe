@@ -27,14 +27,17 @@ create table main.place_media (
 
 create table main.users (
                             user_id serial primary key,
-                            name varchar(255) not null,
-                            phone varchar(15) not null,
-                            email varchar(255),
+                            name varchar(255) not null unique,
+                            phone varchar(15) not null unique,
+                            email varchar(255) unique,
                             password varchar(255),
+                            phone_verified bool not null default false,
                             email_verified bool not null default false,
                             reg_datetime timestamptz not null default now(),
                             photo_path varchar(255)
 );
+
+CREATE UNIQUE INDEX ON main.users (phone, phone_verified) WHERE (users.phone_verified is true);
 
 create type main.mark as enum ('excellent', 'good', 'bad');
 
@@ -126,5 +129,15 @@ create table main.users_subscriptions (
                                           followed_user_id int references main.users(user_id),
                                           primary key (follower_user_id, followed_user_id)
 );
+
+create table main.user_phone_codes (
+                                       user_phone_code_id serial primary key,
+                                       user_id serial references main.users(user_id),
+                                       code varchar(10),
+                                       create_datetime timestamptz default now() not null,
+                                       actual bool default true,
+                                       left_attempts integer not null default 0
+);
+CREATE UNIQUE INDEX ON main.user_phone_codes (user_id, actual) WHERE (actual is true);
 
 -- +migrate Down

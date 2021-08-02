@@ -13,6 +13,7 @@ import (
 	httpDbManager "cafe/pkg/db_manager/http"
 	httpNsi "cafe/pkg/nsi/http"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	wrapErr "github.com/Chekunin/wraperr"
@@ -65,10 +66,17 @@ func NewApp(config Config) *App {
 
 	r := gin.New()
 
+	r.Use(func(c *gin.Context) {
+		c.Writer.Header().Add("Content-type", "application/json")
+		c.Next()
+	})
 	r.Use(common.RequestIdMiddleware())
 	r.Use(common.RequestLogger())
 	r.Use(common.ErrorLogger())
-	r.Use(common.ErrorResponder())
+	r.Use(common.ErrorResponder(func(c *gin.Context, code int, obj interface{}) {
+		data, _ := json.Marshal(obj)
+		c.Data(0, "application/json", data)
+	}))
 	r.Use(common.Recovery())
 
 	r.Use(cors.New(utils.GetCorsConfigs()))

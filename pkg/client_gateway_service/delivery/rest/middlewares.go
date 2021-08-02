@@ -3,6 +3,7 @@ package rest
 import (
 	clientSsoErrs "cafe/pkg/client_sso/errors"
 	"cafe/pkg/common"
+	"context"
 	"errors"
 	"fmt"
 	wrapErr "github.com/Chekunin/wraperr"
@@ -25,6 +26,8 @@ func (r *rest) authMiddleware() gin.HandlerFunc {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
+
+		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), common.ContextKeyToken, token))
 
 		if _, err := r.clientSso.CheckPermission(c.Request.Context(), c.Request.Method, c.Request.URL.Path, token); err != nil {
 			switch {

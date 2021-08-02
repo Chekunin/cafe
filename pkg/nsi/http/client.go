@@ -1,11 +1,13 @@
 package http
 
 import (
+	"cafe/pkg/common"
 	"cafe/pkg/models"
 	"cafe/pkg/transport/http"
 	"context"
 	"fmt"
 	wrapErr "github.com/Chekunin/wraperr"
+	"io"
 )
 
 type HttpNSI struct {
@@ -14,9 +16,19 @@ type HttpNSI struct {
 
 func NewHttpNSI(uri string) (*HttpNSI, error) {
 	httpClient := http.NewHttpClient(http.HttpClientParams{
-		BaseUrl:               uri,
-		Headers:               map[string]string{},
-		CodeToErrorMapping:    codeToError,
+		BaseUrl: uri,
+		Headers: map[string]string{},
+		ErrorHandler: func(reader io.Reader) error {
+			var err common.Err
+			if err2 := http.GobDecoder(reader, &err); err2 != nil {
+				err2 = wrapErr.NewWrapErr(fmt.Errorf("http GobDecoder"), err2)
+				return err2
+			}
+			if err, has := codeToError[err.Code]; has {
+				return err
+			}
+			return common.ErrInternalServerError
+		},
 		RequestPayloadEncoder: http.GobEncoder,
 		RequestPayloadDecoder: http.GobDecoder,
 	})

@@ -6,22 +6,20 @@ import (
 )
 
 type Err struct {
-	code    int         `json:"code"`
-	message string      `json:"message"`
-	meta    interface{} `json:"meta"`
+	Code    int         `json:"code"`
+	Message string      `json:"message"`
+	Meta    interface{} `json:"meta"`
 }
 
-func (e Err) Code() int         { return e.code }
-func (e Err) Error() string     { return e.message }
-func (e Err) Meta() interface{} { return e.meta }
+func (e Err) Error() string { return e.Message }
 
 func (e Err) MarshalJSON() ([]byte, error) {
 	ret := map[string]interface{}{
-		"code":    e.code,
-		"message": e.message,
+		"code":    e.Code,
+		"message": e.Message,
 	}
-	if e.meta != nil {
-		ret["meta"] = e.meta
+	if e.Meta != nil {
+		ret["meta"] = e.Meta
 	}
 	return json.Marshal(ret)
 }
@@ -31,11 +29,18 @@ func (e Err) String() string {
 	return string(data)
 }
 
+func (e Err) Is(target error) bool {
+	if err2, ok := target.(Err); ok {
+		return e.Code == err2.Code
+	}
+	return false
+}
+
 func NewErr(code int, message string, meta interface{}) Err {
 	return Err{
-		code:    code,
-		message: message,
-		meta:    meta,
+		Code:    code,
+		Message: message,
+		Meta:    meta,
 	}
 }
 

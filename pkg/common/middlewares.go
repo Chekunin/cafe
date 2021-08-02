@@ -55,9 +55,8 @@ func Recovery() gin.HandlerFunc {
 	}
 }
 
-func ErrorResponder() gin.HandlerFunc {
+func ErrorResponder(sendDataFunc func(c *gin.Context, code int, obj interface{})) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Writer.Header().Add("Content-type", "application/json")
 		c.Next()
 		if len(c.Errors) > 0 {
 			err := c.Errors[0]
@@ -72,7 +71,7 @@ func ErrorResponder() gin.HandlerFunc {
 					ret = ErrInternalServerError
 				}
 			}
-			c.JSON(0, ret)
+			sendDataFunc(c, 0, ret)
 		}
 	}
 }

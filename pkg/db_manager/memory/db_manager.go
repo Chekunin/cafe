@@ -8,6 +8,7 @@ import (
 	"fmt"
 	wrapErr "github.com/Chekunin/wraperr"
 	"github.com/go-pg/pg/v9"
+	"reflect"
 )
 
 type DbManager struct {
@@ -159,6 +160,18 @@ func (d *DbManager) GetAllUsers(ctx context.Context) ([]models.User, error) {
 	return res, nil
 }
 
+func (d *DbManager) GetUserByUserID(ctx context.Context, userID int) (models.User, error) {
+	var res models.User
+	if err := d.db.Model(&res).Where("user_id = ?", userID).Select(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("select from db"), err)
+		if errors.Is(err, pg.ErrNoRows) {
+			err = wrapErr.NewWrapErr(errs.ErrorEntityNotFound, err)
+		}
+		return models.User{}, err
+	}
+	return res, nil
+}
+
 func (d *DbManager) GetUserByUserName(ctx context.Context, userName string) (models.User, error) {
 	var res models.User
 	if err := d.db.Model(&res).Where("name = ?", userName).Select(); err != nil {
@@ -171,6 +184,27 @@ func (d *DbManager) GetUserByUserName(ctx context.Context, userName string) (mod
 	return res, nil
 }
 
+func (d *DbManager) GetUserByVerifiedPhone(ctx context.Context, phone string) (models.User, error) {
+	var res models.User
+	if err := d.db.Model(&res).Where("phone = ? and phone_verified is true", phone).Select(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("select from db"), err)
+		if errors.Is(err, pg.ErrNoRows) {
+			err = wrapErr.NewWrapErr(errs.ErrorEntityNotFound, err)
+		}
+		return models.User{}, err
+	}
+	return res, nil
+}
+
+func (d *DbManager) CreateUser(ctx context.Context, user *models.User) error {
+	if _, err := d.db.Model(user).Insert(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("insert user = %+v to db", *user), err)
+		err = handleSqlError(err, reflect.TypeOf(*user))
+		return err
+	}
+	return nil
+}
+
 func (d *DbManager) GetAllUserSubscriptions(ctx context.Context) ([]models.UserSubscription, error) {
 	var res []models.UserSubscription
 	if err := d.db.Model(&res).Select(); err != nil {
@@ -178,4 +212,42 @@ func (d *DbManager) GetAllUserSubscriptions(ctx context.Context) ([]models.UserS
 		return nil, err
 	}
 	return res, nil
+}
+
+func (d *DbManager) GetActualUserPhoneCodeByUserID(ctx context.Context, userID int) (models.UserPhoneCode, error) {
+	var res models.UserPhoneCode
+	if err := d.db.Model(&res).Where("user_id = ? and actual is true", userID).Select(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("select from db"), err)
+		return models.UserPhoneCode{}, err
+	}
+	return res, nil
+}
+
+func (d *DbManager) CreateUserPhoneCode(ctx context.Context, userPhoneCode *models.UserPhoneCode) error {
+	if _, err := d.db.Model(userPhoneCode).Insert(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("insert userPhoneCode = %+v to db", *userPhoneCode), err)
+		err = handleSqlError(err, reflect.TypeOf(*userPhoneCode))
+		return err
+	}
+	return nil
+}
+
+func (d *DbManager) ActivateUserPhone(ctx context.Context, userPhoneCodeID int) error {
+	userPhoneCode := models.UserPhoneCode{ID: userPhoneCodeID}
+	if err := d.db.Model(&userPhoneCode).WherePK().Select(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("select from db"), err)
+		return err
+	}
+	if _, err := d.db.Model(&userPhoneCode).WherePK().Set("actual = false").Update(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("set actual to false userPhoneCode = %+v in db", userPhoneCode), err)
+		err = handleSqlError(err, reflect.TypeOf(userPhoneCode))
+		return err
+	}
+	user := models.User{ID: userPhoneCode.UserID}
+	if _, err := d.db.Model(&user).WherePK().Set("phone_verified = true").Update(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("set phone_verified to true userID = %d in db", userPhoneCode.UserID), err)
+		err = handleSqlError(err, reflect.TypeOf(user))
+		return err
+	}
+	return nil
 }

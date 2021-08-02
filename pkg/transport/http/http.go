@@ -3,7 +3,6 @@ package http
 import (
 	"cafe/pkg/common"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net"
@@ -18,8 +17,9 @@ type DataEncoder func(payload interface{}) (io.Reader, error)
 type DataDecoder func(reader io.Reader, res interface{}) error
 
 type HttpClient struct {
-	baseUrl               string
-	codeToErrorMapping    map[int]error
+	baseUrl string
+	//codeToErrorMapping    map[int]error
+	errorHandler          func(closer io.Reader) error
 	headers               map[string]string // заголовки, которые всегда будут передаваться
 	httpClient2           *http.Client
 	requestPayloadEncoder DataEncoder
@@ -27,8 +27,9 @@ type HttpClient struct {
 }
 
 type HttpClientParams struct {
-	BaseUrl               string
-	CodeToErrorMapping    map[int]error
+	BaseUrl string
+	//CodeToErrorMapping    map[int]error
+	ErrorHandler          func(closer io.Reader) error
 	Headers               map[string]string
 	Timeout               time.Duration // максимальное время, которое будет длиться запрос
 	RequestPayloadEncoder DataEncoder
@@ -44,9 +45,10 @@ func NewHttpClient(params HttpClientParams) *HttpClient {
 	}
 
 	client := HttpClient{
-		baseUrl:            params.BaseUrl,
-		codeToErrorMapping: params.CodeToErrorMapping,
-		headers:            params.Headers,
+		baseUrl: params.BaseUrl,
+		//codeToErrorMapping: params.CodeToErrorMapping,
+		errorHandler: params.ErrorHandler,
+		headers:      params.Headers,
 		httpClient2: &http.Client{
 			Timeout:   params.Timeout,
 			Transport: transport,
@@ -177,7 +179,7 @@ func (c *HttpClient) DoRequestWithOptions(options RequestOptions) (*http.Respons
 	defer resp.Body.Close()
 
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusBadRequest {
-		err := wrapErr.NewWrapErr(fmt.Errorf("http status code=%d curl --- %s --- %s", resp.StatusCode, curl, requestTakes), c.mapPaymentErrorToLocal(resp.Body))
+		err := wrapErr.NewWrapErr(fmt.Errorf("http status code=%d curl --- %s --- %s", resp.StatusCode, curl, requestTakes), c.defaultErrorHandler(resp.Body))
 		return nil, err
 	}
 	if options.Result != nil {
@@ -206,21 +208,21 @@ func (c *HttpClient) DoRequest(ctx context.Context,
 	})
 }
 
-// todo: подумать какие ошибки здесь отдавать, свои или чужие
-func (c *HttpClient) mapPaymentErrorToLocal(respBody io.ReadCloser) error {
-	type Err2 struct {
-		Code    int         `json:"code"`
-		Message string      `json:"message"`
-		Meta    interface{} `json:"meta"`
-	}
+type Err struct {
+	Code    int         `json:"code"`
+	Message string      `json:"message"`
+	Meta    interface{} `json:"meta"`
+}
 
-	var e Err2
-	if err := json.NewDecoder(respBody).Decode(&e); err != nil {
-		return common.ErrInternalServerError
+func (e Err) Error() string { return e.Message }
+
+func (c *HttpClient) defaultErrorHandler(reader io.Reader) error {
+	if c.errorHandler != nil {
+		return c.errorHandler(reader)
 	}
-	if err, has := c.codeToErrorMapping[e.Code]; has {
-		return err
-	} else {
-		return common.ErrInternalServerError
+	var e Err
+	if err := c.requestPayloadDecoder(reader, &e); err != nil {
+		panic(err)
 	}
+	return e
 }

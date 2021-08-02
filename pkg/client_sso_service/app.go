@@ -84,7 +84,9 @@ func NewApp(config Config) *App {
 	r.Use(common.RequestIdMiddleware())
 	r.Use(common.RequestLogger())
 	r.Use(common.ErrorLogger())
-	r.Use(common.ErrorResponder())
+	r.Use(common.ErrorResponder(func(c *gin.Context, code int, obj interface{}) {
+		c.Data(0, "application/x-gob", utils.ToGobBytes(obj))
+	}))
 	r.Use(common.Recovery())
 
 	r.Use(cors.New(utils.GetCorsConfigs()))

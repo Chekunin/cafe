@@ -1,12 +1,14 @@
 package http
 
 import (
-	errs "cafe/pkg/db_manager/errors"
+	"cafe/pkg/common"
+	"cafe/pkg/db_manager_service/api/delivery/rest/schema"
 	"cafe/pkg/models"
 	"cafe/pkg/transport/http"
 	"context"
 	"fmt"
 	wrapErr "github.com/Chekunin/wraperr"
+	"io"
 )
 
 type HttpDbManager struct {
@@ -15,18 +17,21 @@ type HttpDbManager struct {
 
 func NewHttpDbManager(uri string) (*HttpDbManager, error) {
 	httpClient := http.NewHttpClient(http.HttpClientParams{
-		BaseUrl:               uri,
-		Headers:               map[string]string{},
-		CodeToErrorMapping:    codeToError,
+		BaseUrl: uri,
+		Headers: map[string]string{},
+		ErrorHandler: func(reader io.Reader) error {
+			var err common.Err
+			if err2 := http.GobDecoder(reader, &err); err2 != nil {
+				err2 = wrapErr.NewWrapErr(fmt.Errorf("http GobDecoder"), err2)
+				return err2
+			}
+			return common.NewErr(err.Code, err.Message, err.Meta)
+		},
 		RequestPayloadEncoder: http.GobEncoder,
 		RequestPayloadDecoder: http.GobDecoder,
 	})
 
 	return &HttpDbManager{httpClient: httpClient}, nil
-}
-
-var codeToError = map[int]error{
-	1: errs.ErrorEntityNotFound,
 }
 
 func (h HttpDbManager) GetAllPlaces(ctx context.Context) ([]models.Place, error) {
@@ -254,6 +259,21 @@ func (h HttpDbManager) GetAllUsers(ctx context.Context) ([]models.User, error) {
 	return resp, nil
 }
 
+func (h HttpDbManager) GetUserByUserID(ctx context.Context, userID int) (models.User, error) {
+	var resp models.User
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "GET",
+		Url:    fmt.Sprintf("/user-by-id/%d", userID),
+		Result: &resp,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return models.User{}, err
+	}
+	return resp, nil
+}
+
 func (h HttpDbManager) GetUserByUserName(ctx context.Context, userName string) (models.User, error) {
 	var resp models.User
 	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
@@ -269,6 +289,36 @@ func (h HttpDbManager) GetUserByUserName(ctx context.Context, userName string) (
 	return resp, nil
 }
 
+func (h HttpDbManager) GetUserByVerifiedPhone(ctx context.Context, phone string) (models.User, error) {
+	var resp models.User
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "GET",
+		Url:    fmt.Sprintf("/user-by-phone/%s", phone),
+		Result: &resp,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return models.User{}, err
+	}
+	return resp, nil
+}
+
+func (h HttpDbManager) CreateUser(ctx context.Context, user *models.User) error {
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:     ctx,
+		Method:  "POST",
+		Url:     "/user",
+		Result:  user,
+		Payload: *user,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return err
+	}
+	return nil
+}
+
 func (h HttpDbManager) GetAllUserSubscriptions(ctx context.Context) ([]models.UserSubscription, error) {
 	var resp []models.UserSubscription
 	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
@@ -282,4 +332,49 @@ func (h HttpDbManager) GetAllUserSubscriptions(ctx context.Context) ([]models.Us
 		return nil, err
 	}
 	return resp, nil
+}
+
+func (h HttpDbManager) GetActualUserPhoneCodeByUserID(ctx context.Context, userID int) (models.UserPhoneCode, error) {
+	var resp models.UserPhoneCode
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "GET",
+		Url:    fmt.Sprintf("/actual-user-phone-code-by-user-id/%d", userID),
+		Result: &resp,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return models.UserPhoneCode{}, err
+	}
+	return resp, nil
+}
+
+func (h HttpDbManager) CreateUserPhoneCode(ctx context.Context, userPhoneCode *models.UserPhoneCode) error {
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:     ctx,
+		Method:  "POST",
+		Url:     "/user-phone-code",
+		Payload: *userPhoneCode,
+		Result:  userPhoneCode,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return err
+	}
+	return nil
+}
+
+func (h HttpDbManager) ActivateUserPhone(ctx context.Context, userPhoneCodeID int) error {
+	payload := schema.ReqActivateUserPhone{UserPhoneCodeID: userPhoneCodeID}
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:     ctx,
+		Method:  "POST",
+		Url:     "/activate-user-phone",
+		Payload: payload,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return err
+	}
+	return nil
 }

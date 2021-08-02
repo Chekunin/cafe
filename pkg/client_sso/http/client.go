@@ -2,10 +2,12 @@ package http
 
 import (
 	"cafe/pkg/client_sso/models"
+	"cafe/pkg/common"
 	"cafe/pkg/transport/http"
 	"context"
 	"fmt"
 	wrapErr "github.com/Chekunin/wraperr"
+	"io"
 )
 
 type HttpClientSso struct {
@@ -14,9 +16,19 @@ type HttpClientSso struct {
 
 func NewHttpClientSso(uri string) (*HttpClientSso, error) {
 	httpClient := http.NewHttpClient(http.HttpClientParams{
-		BaseUrl:               uri,
-		Headers:               map[string]string{},
-		CodeToErrorMapping:    codeToError,
+		BaseUrl: uri,
+		Headers: map[string]string{},
+		ErrorHandler: func(reader io.Reader) error {
+			var err common.Err
+			if err2 := http.GobDecoder(reader, &err); err2 != nil {
+				err2 = wrapErr.NewWrapErr(fmt.Errorf("http GobDecoder"), err2)
+				return err2
+			}
+			if err, has := codeToError[err.Code]; has {
+				return err
+			}
+			return common.ErrInternalServerError
+		},
 		RequestPayloadEncoder: http.GobEncoder,
 		RequestPayloadDecoder: http.GobDecoder,
 	})

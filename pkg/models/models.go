@@ -148,7 +148,8 @@ type User struct {
 	Name          string    `pg:"name" json:"name" api:"name"`
 	Phone         string    `pg:"phone" json:"phone" api:"phone"`
 	Email         string    `pg:"email" json:"email" api:"email"`
-	Password      string    `pg:"password" json:"password" api:"password"`
+	Password      string    `pg:"password" json:"password"`
+	PhoneVerified bool      `pg:"phone_verified" json:"phone_verified" api:"phone_verified"`
 	EmailVerified bool      `pg:"email_verified" json:"email_verified" api:"email_verified"`
 	RegDateTime   time.Time `pg:"reg_datetime" json:"reg_datetime" api:"reg_datetime"`
 	PhotoPath     string    `pg:"photo_path" json:"photo_path" api:"photo_path"`
@@ -159,4 +160,15 @@ type UserSubscription struct {
 
 	FollowerUserID int `pg:"follower_user_id" json:"follower_user_id" api:"follower_user_id"`
 	FollowedUserID int `pg:"followed_user_id" json:"followed_user_id" api:"followed_user_id"`
+}
+
+type UserPhoneCode struct {
+	tableName struct{} `pg:"main.user_phone_codes,discard_unknown_columns"`
+
+	ID             int       `pg:"user_phone_code_id,pk" json:"user_phone_code_id"`
+	UserID         int       `pg:"user_id" json:"user_id"`
+	Code           string    `pg:"code" json:"code"`
+	CreateDatetime time.Time `pg:"create_datetime" json:"create_datetime"`
+	Actual         bool      `pg:"actual" json:"actual"`
+	LeftAttempts   int       `pg:"left_attempts" json:"left_attempts"`
 }

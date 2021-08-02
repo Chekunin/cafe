@@ -151,6 +151,15 @@ func (u *Usecase) GetAllUsers(ctx context.Context) ([]models.User, error) {
 	return res, nil
 }
 
+func (u *Usecase) GetUserByID(ctx context.Context, userID int) (models.User, error) {
+	res, err := u.dbManager.GetUserByUserID(ctx, userID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetUserByUserID"), err)
+		return models.User{}, err
+	}
+	return res, nil
+}
+
 func (u *Usecase) GetUserByName(ctx context.Context, name string) (models.User, error) {
 	res, err := u.dbManager.GetUserByUserName(ctx, name)
 	if err != nil {
@@ -160,6 +169,23 @@ func (u *Usecase) GetUserByName(ctx context.Context, name string) (models.User, 
 	return res, nil
 }
 
+func (u *Usecase) GetUserByVerifiedPhone(ctx context.Context, phone string) (models.User, error) {
+	res, err := u.dbManager.GetUserByVerifiedPhone(ctx, phone)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetUserByVerifiedPhone"), err)
+		return models.User{}, err
+	}
+	return res, nil
+}
+
+func (u *Usecase) CreateUser(ctx context.Context, user models.User) (models.User, error) {
+	if err := u.dbManager.CreateUser(ctx, &user); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager CreateUser user=%+v", user), err)
+		return models.User{}, err
+	}
+	return user, nil
+}
+
 func (u *Usecase) GetAllUserSubscriptions(ctx context.Context) ([]models.UserSubscription, error) {
 	res, err := u.dbManager.GetAllUserSubscriptions(ctx)
 	if err != nil {
@@ -167,4 +193,29 @@ func (u *Usecase) GetAllUserSubscriptions(ctx context.Context) ([]models.UserSub
 		return nil, err
 	}
 	return res, nil
+}
+
+func (u *Usecase) GetActualUserPhoneCodeByUserID(ctx context.Context, userID int) (models.UserPhoneCode, error) {
+	res, err := u.dbManager.GetActualUserPhoneCodeByUserID(ctx, userID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetActualUserPhoneCodeByUserID"), err)
+		return models.UserPhoneCode{}, err
+	}
+	return res, nil
+}
+
+func (u *Usecase) CreateUserPhoneCode(ctx context.Context, userPhoneCode models.UserPhoneCode) (models.UserPhoneCode, error) {
+	if err := u.dbManager.CreateUserPhoneCode(ctx, &userPhoneCode); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager CreateUserPhoneCode"), err)
+		return models.UserPhoneCode{}, err
+	}
+	return userPhoneCode, nil
+}
+
+func (u *Usecase) ActivateUserPhone(ctx context.Context, userPhoneCodeID int) error {
+	if err := u.dbManager.ActivateUserPhone(ctx, userPhoneCodeID); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager ActivateUserPhone"), err)
+		return err
+	}
+	return nil
 }

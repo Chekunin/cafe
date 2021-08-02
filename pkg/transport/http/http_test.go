@@ -23,6 +23,8 @@ var (
 
 const wait1sUri = "/wait1s"
 
+var someError = errors.New("some error")
+
 func TestMain(t *testing.M) {
 	var exitCode int
 	{
@@ -35,10 +37,12 @@ func TestMain(t *testing.M) {
 		defer hs.Close()
 
 		client = NewHttpClient(HttpClientParams{
-			BaseUrl:            hs.URL,
-			CodeToErrorMapping: nil,
-			Headers:            nil,
-			Timeout:            time.Second,
+			BaseUrl: hs.URL,
+			ErrorHandler: func(reader io.Reader) error {
+				return someError
+			},
+			Headers: nil,
+			Timeout: time.Second,
 		})
 
 		exitCode = t.Run()
@@ -177,12 +181,7 @@ func TestTimeout(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestErrorMapping(t *testing.T) {
-	client.codeToErrorMapping = map[int]error{
-		1: errors.New("Error with code 1"),
-		2: errors.New("Error with code 2"),
-	}
-
+func TestErrorHandler(t *testing.T) {
 	handler = func(rw http.ResponseWriter, req *http.Request) {
 		if req.URL.Path != "/qwe" {
 			t.Error("Bad path!")
@@ -195,7 +194,7 @@ func TestErrorMapping(t *testing.T) {
 	// здесь будем проверять на ошибку
 	_, err := client.PostRequest(context.Background(), "/qwe", nil, nil, nil)
 	assert.Error(t, err)
-	if !errors.Is(err, client.codeToErrorMapping[2]) {
+	if !errors.Is(err, someError) {
 		t.Error("incorrect error")
 	}
 }

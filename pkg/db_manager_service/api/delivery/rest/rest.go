@@ -2,7 +2,10 @@ package rest
 
 import (
 	"cafe/pkg/common/utils"
+	"cafe/pkg/db_manager_service/api/delivery/rest/schema"
 	"cafe/pkg/db_manager_service/api/usecase"
+	"cafe/pkg/models"
+	"encoding/gob"
 	"fmt"
 	wrapErr "github.com/Chekunin/wraperr"
 	"github.com/gin-gonic/gin"
@@ -35,8 +38,14 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	router.GET("/reviews", r.handlerGetAllReviews)
 	router.GET("/review-medias", r.handlerGetAllReviewMedias)
 	router.GET("/users", r.handlerGetAllUsers)
+	router.GET("/user-by-id/:user_id", r.handlerGetUserByID)
 	router.GET("/user-by-name/:name", r.handlerGetUserByName)
+	router.GET("/user-by-phone/:phone", r.handlerGetUserByVerifiedPhone)
+	router.POST("/user", r.handlerCreateUser)
 	router.GET("/user-subscriptions", r.handlerGetAllUserSubscriptions)
+	router.GET("/actual-user-phone-code-by-user-id/:user_id", r.handlerGetActualUserPhoneCodeByUserID)
+	router.POST("/user-phone-code", r.handlerCreateUserPhoneCode)
+	router.POST("/activate-user-phone", r.handlerActivateUserPhone)
 }
 
 func (r *rest) handlerGetAllPlaces(c *gin.Context) {
@@ -189,6 +198,43 @@ func (r *rest) handlerGetAllUsers(c *gin.Context) {
 	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
 }
 
+func (r *rest) handlerCreateUser(c *gin.Context) {
+	var req models.User
+	dec := gob.NewDecoder(c.Request.Body)
+	if err := dec.Decode(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("decode data"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	respUser, err := r.Usecase.CreateUser(c.Request.Context(), req)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase CreateUser"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(respUser))
+}
+
+func (r *rest) handlerGetUserByID(c *gin.Context) {
+	var req struct {
+		UserID int `uri:"user_id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := r.Usecase.GetUserByID(c.Request.Context(), req.UserID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetUserByID"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
 func (r *rest) handlerGetUserByName(c *gin.Context) {
 	var req struct {
 		UserName string `uri:"name" binding:"required"`
@@ -208,6 +254,25 @@ func (r *rest) handlerGetUserByName(c *gin.Context) {
 	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
 }
 
+func (r *rest) handlerGetUserByVerifiedPhone(c *gin.Context) {
+	var req struct {
+		Phone string `uri:"phone" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := r.Usecase.GetUserByVerifiedPhone(c.Request.Context(), req.Phone)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetUserByVerifiedPhone"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
 func (r *rest) handlerGetAllUserSubscriptions(c *gin.Context) {
 	resp, err := r.Usecase.GetAllUserSubscriptions(c.Request.Context())
 	if err != nil {
@@ -216,4 +281,55 @@ func (r *rest) handlerGetAllUserSubscriptions(c *gin.Context) {
 		return
 	}
 	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerGetActualUserPhoneCodeByUserID(c *gin.Context) {
+	var req struct {
+		UserID int `uri:"user_id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	resp, err := r.Usecase.GetActualUserPhoneCodeByUserID(c.Request.Context(), req.UserID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetActualUserPhoneCodeByUserID"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerCreateUserPhoneCode(c *gin.Context) {
+	var req models.UserPhoneCode
+	dec := gob.NewDecoder(c.Request.Body)
+	if err := dec.Decode(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("decode data"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	userPhoneCode, err := r.Usecase.CreateUserPhoneCode(c.Request.Context(), req)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase CreateUserPhoneCode"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(userPhoneCode))
+}
+
+func (r *rest) handlerActivateUserPhone(c *gin.Context) {
+	var req schema.ReqActivateUserPhone
+	dec := gob.NewDecoder(c.Request.Body)
+	if err := dec.Decode(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("decode data"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	if err := r.Usecase.ActivateUserPhone(c.Request.Context(), req.UserPhoneCodeID); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase ActivateUserPhone"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Status(http.StatusOK)
 }
