@@ -1,6 +1,7 @@
 package http
 
 import (
+	errs "cafe/pkg/client_sso/errors"
 	"cafe/pkg/client_sso/models"
 	"cafe/pkg/common"
 	"cafe/pkg/transport/http"
@@ -24,7 +25,7 @@ func NewHttpClientSso(uri string) (*HttpClientSso, error) {
 				err2 = wrapErr.NewWrapErr(fmt.Errorf("http GobDecoder"), err2)
 				return err2
 			}
-			if err, has := codeToError[err.Code]; has {
+			if err, has := errs.GetErrByCode(err.Code); has {
 				return err
 			}
 			return common.ErrInternalServerError
@@ -35,8 +36,6 @@ func NewHttpClientSso(uri string) (*HttpClientSso, error) {
 
 	return &HttpClientSso{httpClient: httpClient}, nil
 }
-
-var codeToError = map[int]error{}
 
 func (h HttpClientSso) Login(ctx context.Context, userName string, password string) (models.Tokens, error) {
 	var resp models.Tokens

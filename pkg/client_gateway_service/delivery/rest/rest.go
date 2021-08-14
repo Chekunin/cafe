@@ -38,6 +38,7 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	authorized := router.Group("/")
 	authorized.Use(r.authMiddleware())
 	authorized.POST("/auth/logout", r.handlerLogout)
+	authorized.GET("/users/subscriptions", r.handlerGetUserSubscriptions)
 	authorized.POST("/user/:id/subscribe", r.handlerSubscribeToUser)
 	authorized.POST("/user/:id/unsubscribe", r.handlerUnsubscribeFromUser)
 }

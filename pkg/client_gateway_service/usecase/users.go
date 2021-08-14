@@ -35,3 +35,13 @@ func (u *Usecase) UnsubscribeFromUser(ctx context.Context, followerUserID int, f
 
 	return nil
 }
+
+func (u *Usecase) GetUserSubscriptionsByFollowerID(ctx context.Context, followerUserID int) ([]models.UserSubscription, error) {
+	userSubscriptions, err := u.nsi.GetUserSubscriptionsByFollowerID(ctx, followerUserID)
+	if err != nil {
+		err = wraperr.NewWrapErr(fmt.Errorf("nsi GetUserSubscriptionsByFollowerID followerUserID=%d", followerUserID), err)
+		return nil, err
+	}
+
+	return userSubscriptions, nil
+}

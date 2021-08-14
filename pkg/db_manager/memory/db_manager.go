@@ -226,6 +226,10 @@ func (d *DbManager) GetAllUserSubscriptions(ctx context.Context) ([]models.UserS
 func (d *DbManager) AddUserSubscription(ctx context.Context, userSubscription *models.UserSubscription) error {
 	if _, err := d.db.Model(userSubscription).Returning("*").Insert(); err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("into into db userSubscription=%+v", userSubscription), err)
+		err = handleSqlError(err, reflect.TypeOf(*userSubscription))
+		if errors.Is(err, errs.ErrUniqueViolation(nil)) {
+			err = wrapErr.NewWrapErr(errs.ErrorEntityAlreadyExists, err)
+		}
 		return err
 	}
 	return nil

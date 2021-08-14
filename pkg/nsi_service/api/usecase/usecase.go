@@ -33,3 +33,12 @@ func (u *Usecase) GetPlacesInsideBound(ctx context.Context, leftLng float64, rig
 	}
 	return places, nil
 }
+
+func (u *Usecase) GetUserSubscriptionsByFollowerID(ctx context.Context, followerID int) ([]models.UserSubscription, error) {
+	userSubscriptions, err := u.nsi.GetUserSubscriptionsByFollowerID(ctx, followerID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("nsi GetUserSubscriptionsByFollowerID followerID=%d", followerID), err)
+		return nil, err
+	}
+	return userSubscriptions, nil
+}

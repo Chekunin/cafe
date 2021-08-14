@@ -22,6 +22,7 @@ func NewRest(router *gin.RouterGroup, usecase *usecase.Usecase) *rest {
 func (r *rest) routes(router *gin.RouterGroup) {
 	router.GET("/place-by-id/:id", r.handlerGetPlaceByID)
 	router.GET("/places-inside-bound", r.handlerGetPlacesInsideBound)
+	router.GET("/users-subscriptions/by-follower-id/:id", r.handlerGetUserSubscriptionsByFollowerID)
 }
 
 func (r *rest) handlerGetPlaceByID(c *gin.Context) {
@@ -58,6 +59,24 @@ func (r *rest) handlerGetPlacesInsideBound(c *gin.Context) {
 	resp, err := r.Usecase.GetPlacesInsideBound(c.Request.Context(), req.LeftLng, req.RightLng, req.TopLat, req.BottomLat)
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetPlacesInsideBound"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerGetUserSubscriptionsByFollowerID(c *gin.Context) {
+	var req struct {
+		FollowerID int `uri:"id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	resp, err := r.Usecase.GetUserSubscriptionsByFollowerID(c.Request.Context(), req.FollowerID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetUserSubscriptionsByFollowerID followerID=%d", req.FollowerID), err)
 		c.AbortWithError(GetHttpCode(err), err)
 		return
 	}

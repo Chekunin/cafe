@@ -73,3 +73,19 @@ func (n HttpNSI) GetPlaceByID(ctx context.Context, id int) (models.Place, error)
 	}
 	return resp, nil
 }
+
+func (n HttpNSI) GetUserSubscriptionsByFollowerID(ctx context.Context, followerID int) ([]models.UserSubscription, error) {
+	resp := []models.UserSubscription{}
+	_, err := n.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "GET",
+		Url:    fmt.Sprintf("/users-subscriptions/by-follower-id/%d", followerID),
+		Result: &resp,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return resp, err
+	}
+
+	return resp, nil
+}

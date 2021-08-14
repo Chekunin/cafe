@@ -34,6 +34,25 @@ func (r *rest) handlerSubscribeToUser(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+func (r *rest) handlerGetUserSubscriptions(c *gin.Context) {
+	userID, has := common.FromContextUserID(c.Request.Context())
+	if !has {
+		err := wrapErr.NewWrapErr(fmt.Errorf("userID is not in context"), nil)
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	resp, err := r.usecase.GetUserSubscriptionsByFollowerID(c.Request.Context(), userID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetUserSubscriptionsByFollowerID"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	fmt.Printf("qqq\n%+v\n", resp)
+
+	c.JSON(http.StatusOK, resp)
+}
+
 func (r *rest) handlerUnsubscribeFromUser(c *gin.Context) {
 	var req struct {
 		UserID int `uri:"id" binding:"required"`

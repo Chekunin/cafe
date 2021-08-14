@@ -14,13 +14,14 @@ var (
 var codeToError = map[int]error{
 	1:   ErrIncorrectLoginOrPassword,
 	2:   ErrAuthorizationHeader,
+	3:   ErrIncorrectToken,
 	400: ErrIncorrectRequest,
 	500: ErrInternalServerError,
 }
 
-func GetErrByCode(code int) error {
+func GetErrByCode(code int) (error, bool) {
 	if err, has := codeToError[code]; has {
-		return err
+		return err, true
 	}
-	return UnknownError
+	return nil, false
 }

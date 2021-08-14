@@ -14,6 +14,7 @@ var MapErrorsByCode = map[int]common.Err{
 }
 
 var ErrorEntityNotFound = common.NewErr(1, "Сущность не найдена", nil)
+var ErrorEntityAlreadyExists = common.NewErr(2, "Сущность уже существует", nil)
 
 // ошибки из БД
 var ErrIntegrityConstraintViolation = func(meta interface{}) common.Err {

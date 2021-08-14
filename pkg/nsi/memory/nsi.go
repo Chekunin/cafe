@@ -57,3 +57,17 @@ func (n *NSI) GetPlaceByID(ctx context.Context, id int) (models.Place, error) {
 
 	return *place, nil
 }
+
+func (n *NSI) GetUserSubscriptionsByFollowerID(ctx context.Context, followerID int) ([]models.UserSubscription, error) {
+	userSubscriptions, has := n.context.userSubscriptionsByFollowerUserID[followerID]
+	if !has {
+		return []models.UserSubscription{}, nil
+	}
+
+	res := make([]models.UserSubscription, 0, len(userSubscriptions))
+	for _, v := range userSubscriptions {
+		res = append(res, *v)
+	}
+
+	return res, nil
+}
