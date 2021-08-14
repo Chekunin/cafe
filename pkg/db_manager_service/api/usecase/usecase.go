@@ -115,6 +115,14 @@ func (u *Usecase) GetAllPlaceEvaluations(ctx context.Context) ([]models.PlaceEva
 	return res, nil
 }
 
+func (u *Usecase) AddPlaceEvaluationWithMarks(ctx context.Context, placeEvaluation *models.PlaceEvaluation, marks []models.PlaceEvaluationMark) error {
+	if err := u.dbManager.AddPlaceEvaluationWithMarks(ctx, placeEvaluation, marks); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager AddPlaceEvaluationWithMarks"), err)
+		return err
+	}
+	return nil
+}
+
 func (u *Usecase) GetAllPlaceEvaluationMarks(ctx context.Context) ([]models.PlaceEvaluationMark, error) {
 	res, err := u.dbManager.GetAllPlaceEvaluationMarks(ctx)
 	if err != nil {

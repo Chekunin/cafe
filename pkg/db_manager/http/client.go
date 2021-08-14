@@ -199,6 +199,30 @@ func (h HttpDbManager) GetAllPlaceEvaluations(ctx context.Context) ([]models.Pla
 	return resp, nil
 }
 
+func (h HttpDbManager) AddPlaceEvaluationWithMarks(ctx context.Context, placeEvaluation *models.PlaceEvaluation, marks []models.PlaceEvaluationMark) error {
+	payload := schema.ReqEvaluatePlace{
+		PlaceEvaluation: *placeEvaluation,
+		Marks:           marks,
+	}
+	var resp schema.ReqEvaluatePlace
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:     ctx,
+		Method:  "POST",
+		Url:     "/place-evaluation-with-marks",
+		Payload: payload,
+		Result:  &resp,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return err
+	}
+	*placeEvaluation = resp.PlaceEvaluation
+	for i, _ := range marks {
+		marks[i] = resp.Marks[i]
+	}
+	return nil
+}
+
 func (h HttpDbManager) GetAllPlaceEvaluationMarks(ctx context.Context) ([]models.PlaceEvaluationMark, error) {
 	var resp []models.PlaceEvaluationMark
 	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{

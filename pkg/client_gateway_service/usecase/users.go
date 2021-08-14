@@ -19,6 +19,9 @@ func (u *Usecase) SubscribeToUser(ctx context.Context, followerUserID int, follo
 		return err
 	}
 
+	// todo: здесь надо сообщать всем остальным (например, nsi), что произошло изменение состояние,
+	//  можно сообщать через шину nats.
+
 	return nil
 }
 

@@ -110,12 +110,14 @@ type PlaceEvaluation struct {
 	UserID   int       `pg:"user_id" json:"user_id" api:"user_id"`
 	DateTime time.Time `pg:"datetime" json:"datetime" api:"datetime"`
 	Comment  string    `pg:"comment" json:"comment" api:"comment"`
+
+	PlaceEvaluationMarks []PlaceEvaluationMark `pg:"-" json:"place_evaluation_marks" api:"place_evaluation_marks"`
 }
 
 type PlaceEvaluationMark struct {
 	tableName struct{} `pg:"main.place_evaluation_marks,discard_unknown_columns"`
 
-	PlaceEvaluationID     int    `pg:"place_evaluation_id" json:"place_evaluation_id" api:"place_evaluation_id"`
+	PlaceEvaluationID     int    `pg:"place_evaluation_id" json:"-" api:"place_evaluation_id"`
 	EvaluationCriterionID int    `pg:"evaluation_criterion_id" json:"evaluation_criterion_id" api:"evaluation_criterion_id"`
 	Mark                  string `pg:"mark" json:"mark" api:"mark"`
 }

@@ -71,3 +71,32 @@ func (n *NSI) GetUserSubscriptionsByFollowerID(ctx context.Context, followerID i
 
 	return res, nil
 }
+
+func (n *NSI) GetPlaceEvaluationByUserIDByPlaceID(ctx context.Context, userID int, placeID int) (models.PlaceEvaluation, error) {
+	v, has := n.context.placeEvaluationsByUserIDByPlaceID[userID]
+	if !has {
+		err := wrapErr.NewWrapErr(fmt.Errorf("get placeEvaluations with userID=%d", userID), errs.ErrorEntityNotFound)
+		return models.PlaceEvaluation{}, err
+	}
+	v2, has := v[placeID]
+	if !has {
+		err := wrapErr.NewWrapErr(fmt.Errorf("get placeEvaluation of userID=%d with placeID=%d", userID, placeID), errs.ErrorEntityNotFound)
+		return models.PlaceEvaluation{}, err
+	}
+	return *v2, nil
+}
+
+func (n *NSI) GetPlaceEvaluationMarksByPlaceEvaluationID(ctx context.Context, placeEvaluationID int) ([]models.PlaceEvaluationMark, error) {
+	v, has := n.context.placeEvaluationMarksByPlaceEvaluationID[placeEvaluationID]
+	if !has {
+		err := wrapErr.NewWrapErr(fmt.Errorf("placeEvaluationMarksByPlaceEvaluationID placeEvaluationID=%d", placeEvaluationID), errs.ErrorEntityNotFound)
+		return nil, err
+	}
+
+	res := make([]models.PlaceEvaluationMark, 0, len(v))
+	for _, v2 := range v {
+		res = append(res, *v2)
+	}
+
+	return res, nil
+}

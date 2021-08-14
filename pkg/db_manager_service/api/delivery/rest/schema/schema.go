@@ -1,10 +1,17 @@
 package schema
 
+import "cafe/pkg/models"
+
 type ReqLogin struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string
+	Password string
 }
 
 type ReqActivateUserPhone struct {
-	UserPhoneCodeID int `json:"user_phone_code_id"`
+	UserPhoneCodeID int
+}
+
+type ReqEvaluatePlace struct {
+	PlaceEvaluation models.PlaceEvaluation
+	Marks           []models.PlaceEvaluationMark
 }

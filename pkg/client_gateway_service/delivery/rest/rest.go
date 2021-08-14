@@ -41,6 +41,9 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	authorized.GET("/users/subscriptions", r.handlerGetUserSubscriptions)
 	authorized.POST("/user/:id/subscribe", r.handlerSubscribeToUser)
 	authorized.POST("/user/:id/unsubscribe", r.handlerUnsubscribeFromUser)
+
+	authorized.POST("/place/:id/evaluation", r.handlerEvaluatePlace)
+	authorized.GET("/place/:id/evaluation", r.handlerGetPlaceEvaluation)
 }
 
 func (r *rest) handlerGetPlaces(c *gin.Context) {

@@ -16,6 +16,7 @@ type IDBManager interface {
 	GetAllAdverts(ctx context.Context) ([]models.Advert, error)
 	GetAllAdvertMedias(ctx context.Context) ([]models.AdvertMedia, error)
 	GetAllEvaluationCriterions(ctx context.Context) ([]models.EvaluationCriterion, error)
+	AddPlaceEvaluationWithMarks(ctx context.Context, placeEvaluation *models.PlaceEvaluation, marks []models.PlaceEvaluationMark) error
 	GetAllPlaceEvaluations(ctx context.Context) ([]models.PlaceEvaluation, error)
 	GetAllPlaceEvaluationMarks(ctx context.Context) ([]models.PlaceEvaluationMark, error)
 	GetAllReviews(ctx context.Context) ([]models.Review, error)

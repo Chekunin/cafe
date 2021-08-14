@@ -34,6 +34,7 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	router.GET("/advert-medias", r.handlerGetAllAdvertMedias)
 	router.GET("/evaluation-criterions", r.handlerGetAllEvaluationCriterions)
 	router.GET("/place-evaluations", r.handlerGetAllPlaceEvaluations)
+	router.POST("/place-evaluation-with-marks", r.handlerAddPlaceEvaluationWithMarks)
 	router.GET("/place-evaluation-marks", r.handlerGetAllPlaceEvaluationMarks)
 	router.GET("/reviews", r.handlerGetAllReviews)
 	router.GET("/review-medias", r.handlerGetAllReviewMedias)
@@ -160,6 +161,23 @@ func (r *rest) handlerGetAllPlaceEvaluations(c *gin.Context) {
 		return
 	}
 	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerAddPlaceEvaluationWithMarks(c *gin.Context) {
+	var req schema.ReqEvaluatePlace
+	dec := gob.NewDecoder(c.Request.Body)
+	if err := dec.Decode(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("decode data"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	if err := r.Usecase.AddPlaceEvaluationWithMarks(c.Request.Context(), &req.PlaceEvaluation, req.Marks); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase AddUserSubscription"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(req))
 }
 
 func (r *rest) handlerGetAllPlaceEvaluationMarks(c *gin.Context) {

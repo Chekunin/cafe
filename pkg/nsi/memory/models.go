@@ -43,10 +43,11 @@ type NsiContext struct {
 	placeEvaluations          []models.PlaceEvaluation
 	placeEvaluationsByID      map[int]*models.PlaceEvaluation
 	placeEvaluationsByPlaceID map[int][]*models.PlaceEvaluation
-	placeEvaluationsByUserID  map[int][]*models.PlaceEvaluation
+	//placeEvaluationsByUserID  map[int][]*models.PlaceEvaluation
+	placeEvaluationsByUserIDByPlaceID map[int]map[int]*models.PlaceEvaluation
 
 	placeEvaluationMarks                    []models.PlaceEvaluationMark
-	placeEvaluationMarksByPlaceEvaluationID map[int]*models.PlaceEvaluationMark
+	placeEvaluationMarksByPlaceEvaluationID map[int][]*models.PlaceEvaluationMark
 
 	reviews         []models.Review
 	reviewsByID     map[int]*models.Review

@@ -115,6 +115,21 @@ func (d *DbManager) GetAllEvaluationCriterions(ctx context.Context) ([]models.Ev
 	return res, nil
 }
 
+func (d *DbManager) AddPlaceEvaluationWithMarks(ctx context.Context, placeEvaluation *models.PlaceEvaluation, marks []models.PlaceEvaluationMark) error {
+	// todo: это выполнять в транзакции
+	if _, err := d.db.Model(placeEvaluation).Returning("*").Insert(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("insert placeEvaluation=%+v into db", placeEvaluation), err)
+		return err
+	}
+
+	if _, err := d.db.Model(&marks).Returning("*").Insert(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("insert marks=%+v into db", marks), err)
+		return err
+	}
+
+	return nil
+}
+
 func (d *DbManager) GetAllPlaceEvaluations(ctx context.Context) ([]models.PlaceEvaluation, error) {
 	var res []models.PlaceEvaluation
 	if err := d.db.Model(&res).Select(); err != nil {

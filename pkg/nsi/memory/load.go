@@ -287,7 +287,7 @@ func (n *NSI) loadPlaceEvaluations(ctx context.Context) error {
 	n.context.placeEvaluations = placeEvaluations
 	n.context.placeEvaluationsByID = map[int]*models.PlaceEvaluation{}
 	n.context.placeEvaluationsByPlaceID = map[int][]*models.PlaceEvaluation{}
-	n.context.placeEvaluationsByUserID = map[int][]*models.PlaceEvaluation{}
+	n.context.placeEvaluationsByUserIDByPlaceID = map[int]map[int]*models.PlaceEvaluation{}
 	for i, v := range n.context.placeEvaluations {
 		n.context.placeEvaluationsByID[v.ID] = &n.context.placeEvaluations[i]
 
@@ -296,10 +296,10 @@ func (n *NSI) loadPlaceEvaluations(ctx context.Context) error {
 		}
 		n.context.placeEvaluationsByPlaceID[v.PlaceID] = append(n.context.placeEvaluationsByPlaceID[v.PlaceID], &n.context.placeEvaluations[i])
 
-		if _, has := n.context.placeEvaluationsByUserID[v.UserID]; !has {
-			n.context.placeEvaluationsByUserID[v.UserID] = make([]*models.PlaceEvaluation, 0)
+		if _, has := n.context.placeEvaluationsByUserIDByPlaceID[v.UserID]; !has {
+			n.context.placeEvaluationsByUserIDByPlaceID[v.UserID] = make(map[int]*models.PlaceEvaluation, 0)
 		}
-		n.context.placeEvaluationsByUserID[v.UserID] = append(n.context.placeEvaluationsByUserID[v.UserID], &n.context.placeEvaluations[i])
+		n.context.placeEvaluationsByUserIDByPlaceID[v.UserID][v.PlaceID] = &n.context.placeEvaluations[i]
 	}
 
 	return nil
@@ -313,9 +313,12 @@ func (n *NSI) loadPlaceEvaluationMarks(ctx context.Context) error {
 	}
 
 	n.context.placeEvaluationMarks = placeEvaluationMarks
-	n.context.placeEvaluationMarksByPlaceEvaluationID = map[int]*models.PlaceEvaluationMark{}
+	n.context.placeEvaluationMarksByPlaceEvaluationID = map[int][]*models.PlaceEvaluationMark{}
 	for i, v := range n.context.placeEvaluationMarks {
-		n.context.placeEvaluationMarksByPlaceEvaluationID[v.PlaceEvaluationID] = &n.context.placeEvaluationMarks[i]
+		if _, has := n.context.placeEvaluationMarksByPlaceEvaluationID[v.PlaceEvaluationID]; !has {
+			n.context.placeEvaluationMarksByPlaceEvaluationID[v.PlaceEvaluationID] = make([]*models.PlaceEvaluationMark, 0)
+		}
+		n.context.placeEvaluationMarksByPlaceEvaluationID[v.PlaceEvaluationID] = append(n.context.placeEvaluationMarksByPlaceEvaluationID[v.PlaceEvaluationID], &n.context.placeEvaluationMarks[i])
 	}
 
 	return nil
