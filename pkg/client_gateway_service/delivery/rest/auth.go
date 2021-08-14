@@ -2,7 +2,6 @@ package rest
 
 import (
 	"cafe/pkg/client_gateway_service/delivery/rest/schema"
-	"cafe/pkg/client_sso/models"
 	"cafe/pkg/common"
 	"fmt"
 	wrapErr "github.com/Chekunin/wraperr"
@@ -30,7 +29,7 @@ func (r *rest) handlerLogin(c *gin.Context) {
 		RefreshToken: tokens.RefreshToken,
 	}
 
-	c.JSON(http.StatusOK, models.Convert(resp, modelTag))
+	c.JSON(http.StatusOK, resp)
 }
 
 func (r *rest) handlerLogout(c *gin.Context) {
@@ -65,7 +64,7 @@ func (r *rest) handlerRefreshToken(c *gin.Context) {
 		RefreshToken: tokens.RefreshToken,
 	}
 
-	c.JSON(http.StatusOK, models.Convert(resp, modelTag))
+	c.JSON(http.StatusOK, resp)
 }
 
 func (r *rest) handlerSignUp(c *gin.Context) {
@@ -83,7 +82,7 @@ func (r *rest) handlerSignUp(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, models.Convert(user, modelTag))
+	c.JSON(http.StatusOK, user)
 }
 
 func (r *rest) handlerApprovePhone(c *gin.Context) {

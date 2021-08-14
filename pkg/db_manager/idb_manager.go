@@ -25,8 +25,12 @@ type IDBManager interface {
 	GetUserByUserName(ctx context.Context, userName string) (models.User, error)
 	GetUserByVerifiedPhone(ctx context.Context, phone string) (models.User, error)
 	CreateUser(ctx context.Context, user *models.User) error
+	UpdateUser(ctx context.Context, user *models.User) error
 	GetAllUserSubscriptions(ctx context.Context) ([]models.UserSubscription, error)
+	AddUserSubscription(ctx context.Context, userSubscription *models.UserSubscription) error
+	DeleteUserSubscription(ctx context.Context, userSubscription models.UserSubscription) error
 	GetActualUserPhoneCodeByUserID(ctx context.Context, userID int) (models.UserPhoneCode, error)
 	CreateUserPhoneCode(ctx context.Context, userPhoneCode *models.UserPhoneCode) error
+	UpdateUserPhoneCode(ctx context.Context, userPhoneCode *models.UserPhoneCode) error
 	ActivateUserPhone(ctx context.Context, userPhoneCodeID int) error
 }

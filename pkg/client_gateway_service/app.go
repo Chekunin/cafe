@@ -75,7 +75,7 @@ func NewApp(config Config) *App {
 	r.Use(common.ErrorLogger())
 	r.Use(common.ErrorResponder(func(c *gin.Context, code int, obj interface{}) {
 		data, _ := json.Marshal(obj)
-		c.Data(0, "application/json", data)
+		c.Data(code, "application/json", data)
 	}))
 	r.Use(common.Recovery())
 
@@ -96,6 +96,11 @@ func NewApp(config Config) *App {
 		log.Info("Start listening for health-check", log.Fields{"port": config.Listen})
 		if err := srv2.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			catcherr.AsCritical().Catch(wrapErr.NewWrapErr(fmt.Errorf("ListenAndServe for health-check"), err))
+		}
+	}()
+	defer func() {
+		if err := srv2.Shutdown(context.TODO()); err != nil {
+			catcherr.Catch(wrapErr.NewWrapErr(fmt.Errorf("srv2 server forced to shutdown"), err))
 		}
 	}()
 	defer srv2.Close()

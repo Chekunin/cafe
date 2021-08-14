@@ -108,6 +108,11 @@ func NewApp(config Config) *App {
 			catcherr.AsCritical().Catch(wrapErr.NewWrapErr(fmt.Errorf("ListenAndServe for health-check"), err))
 		}
 	}()
+	defer func() {
+		if err := srv2.Shutdown(context.TODO()); err != nil {
+			catcherr.Catch(wrapErr.NewWrapErr(fmt.Errorf("srv2 server forced to shutdown"), err))
+		}
+	}()
 	defer srv2.Close()
 
 	if config.DocPath != "" {

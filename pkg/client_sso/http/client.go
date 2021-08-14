@@ -43,10 +43,7 @@ func (h HttpClientSso) Login(ctx context.Context, userName string, password stri
 	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
 		Ctx:    ctx,
 		Method: "POST",
-		Payload: struct {
-			UserName string `json:"username"`
-			Password string `json:"password"`
-		}{
+		Payload: models.ReqLogin{
 			UserName: userName,
 			Password: password,
 		},
@@ -64,9 +61,7 @@ func (h HttpClientSso) Logout(ctx context.Context, token string) error {
 	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
 		Ctx:    ctx,
 		Method: "POST",
-		Payload: struct {
-			Token string `json:"token"`
-		}{
+		Payload: models.ReqLogout{
 			Token: token,
 		},
 		Url: "/logout",
@@ -83,9 +78,7 @@ func (h HttpClientSso) RefreshToken(ctx context.Context, refreshToken string) (m
 	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
 		Ctx:    ctx,
 		Method: "POST",
-		Payload: struct {
-			RefreshToken string `json:"refresh_token"`
-		}{
+		Payload: models.ReqRefreshToken{
 			RefreshToken: refreshToken,
 		},
 		Url:    "/refresh-token",
@@ -98,16 +91,12 @@ func (h HttpClientSso) RefreshToken(ctx context.Context, refreshToken string) (m
 	return resp, nil
 }
 
-func (h HttpClientSso) CheckPermission(ctx context.Context, method, path, token string) (bool, error) {
-	var resp bool
+func (h HttpClientSso) CheckPermission(ctx context.Context, method, path, token string) (models.RespCheckPermission, error) {
+	var resp models.RespCheckPermission
 	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
 		Ctx:    ctx,
 		Method: "POST",
-		Payload: struct {
-			Method string `json:"method"`
-			Path   string `json:"path"`
-			Token  string `json:"token"`
-		}{
+		Payload: models.ReqCheckPermission{
 			Method: method,
 			Path:   path,
 			Token:  token,
@@ -117,7 +106,7 @@ func (h HttpClientSso) CheckPermission(ctx context.Context, method, path, token 
 	})
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
-		return false, err
+		return models.RespCheckPermission{}, err
 	}
 	return resp, nil
 }

@@ -117,18 +117,18 @@ func (c ClientSso) RefreshToken(ctx context.Context, refreshToken string) (ssoMo
 	return tokens, nil
 }
 
-func (c ClientSso) CheckPermission(ctx context.Context, method, path, token string) (bool, error) {
+func (c ClientSso) CheckPermission(ctx context.Context, method, path, token string) (ssoModels.RespCheckPermission, error) {
 	accessDetails, err := c.tk.ParseAccessDetails(token)
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("ParseAccessDetails token=%s", token), err)
 		err = wrapErr.NewWrapErr(errs.ErrIncorrectToken, err)
-		return false, err
+		return ssoModels.RespCheckPermission{}, err
 	}
 
 	_, err = c.rd.FetchAuth(accessDetails.TokenUuid)
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("FetchAuth tokenUuid=%s", accessDetails.TokenUuid), err)
-		return false, err
+		return ssoModels.RespCheckPermission{}, err
 	}
 
 	// todo: здесь через casbin делать проверку прав доступа
@@ -137,7 +137,16 @@ func (c ClientSso) CheckPermission(ctx context.Context, method, path, token stri
 	//	err = wrapErr.NewWrapErr(errs.ErrIncorrectToken, err)
 	//	return false, err
 	//}
-	return true, nil
+
+	userID, err := strconv.Atoi(accessDetails.UserID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("strconv Atoi %s", accessDetails.UserID), err)
+		return ssoModels.RespCheckPermission{}, err
+	}
+	return ssoModels.RespCheckPermission{
+		UserID:    userID,
+		HasAccess: true,
+	}, nil
 }
 
 func (c ClientSso) GetUserID(ctx context.Context, token string) (int, error) {

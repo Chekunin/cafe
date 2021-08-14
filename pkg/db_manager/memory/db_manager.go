@@ -205,6 +205,15 @@ func (d *DbManager) CreateUser(ctx context.Context, user *models.User) error {
 	return nil
 }
 
+func (d *DbManager) UpdateUser(ctx context.Context, user *models.User) error {
+	if _, err := d.db.Model(user).WherePK().Update(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("update user = %+v in db", *user), err)
+		err = handleSqlError(err, reflect.TypeOf(*user))
+		return err
+	}
+	return nil
+}
+
 func (d *DbManager) GetAllUserSubscriptions(ctx context.Context) ([]models.UserSubscription, error) {
 	var res []models.UserSubscription
 	if err := d.db.Model(&res).Select(); err != nil {
@@ -214,9 +223,28 @@ func (d *DbManager) GetAllUserSubscriptions(ctx context.Context) ([]models.UserS
 	return res, nil
 }
 
+func (d *DbManager) AddUserSubscription(ctx context.Context, userSubscription *models.UserSubscription) error {
+	if _, err := d.db.Model(userSubscription).Returning("*").Insert(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("into into db userSubscription=%+v", userSubscription), err)
+		return err
+	}
+	return nil
+}
+
+func (d *DbManager) DeleteUserSubscription(ctx context.Context, userSubscription models.UserSubscription) error {
+	if _, err := d.db.Model(&userSubscription).Delete(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("delete from db userSubscription=%+v", userSubscription), err)
+		return err
+	}
+	return nil
+}
+
 func (d *DbManager) GetActualUserPhoneCodeByUserID(ctx context.Context, userID int) (models.UserPhoneCode, error) {
 	var res models.UserPhoneCode
 	if err := d.db.Model(&res).Where("user_id = ? and actual is true", userID).Select(); err != nil {
+		if errors.Is(err, pg.ErrNoRows) {
+			err = wrapErr.NewWrapErr(errs.ErrorEntityNotFound, err)
+		}
 		err = wrapErr.NewWrapErr(fmt.Errorf("select from db"), err)
 		return models.UserPhoneCode{}, err
 	}
@@ -226,6 +254,15 @@ func (d *DbManager) GetActualUserPhoneCodeByUserID(ctx context.Context, userID i
 func (d *DbManager) CreateUserPhoneCode(ctx context.Context, userPhoneCode *models.UserPhoneCode) error {
 	if _, err := d.db.Model(userPhoneCode).Insert(); err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("insert userPhoneCode = %+v to db", *userPhoneCode), err)
+		err = handleSqlError(err, reflect.TypeOf(*userPhoneCode))
+		return err
+	}
+	return nil
+}
+
+func (d *DbManager) UpdateUserPhoneCode(ctx context.Context, userPhoneCode *models.UserPhoneCode) error {
+	if _, err := d.db.Model(userPhoneCode).WherePK().Update(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("update userPhoneCode = %+v in db", *userPhoneCode), err)
 		err = handleSqlError(err, reflect.TypeOf(*userPhoneCode))
 		return err
 	}

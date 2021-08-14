@@ -29,7 +29,8 @@ func (r *rest) authMiddleware() gin.HandlerFunc {
 
 		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), common.ContextKeyToken, token))
 
-		if _, err := r.clientSso.CheckPermission(c.Request.Context(), c.Request.Method, c.Request.URL.Path, token); err != nil {
+		respCheckPermission, err := r.clientSso.CheckPermission(c.Request.Context(), c.Request.Method, c.Request.URL.Path, token)
+		if err != nil {
 			switch {
 			case errors.Is(err, clientSsoErrs.ErrIncorrectToken):
 				c.AbortWithError(http.StatusForbidden, common.ErrPermissionDenied)
@@ -38,6 +39,8 @@ func (r *rest) authMiddleware() gin.HandlerFunc {
 			}
 			return
 		}
+
+		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), common.ContextKeyUserID, respCheckPermission.UserID))
 
 		c.Next()
 	}

@@ -1,8 +1,10 @@
 package rest
 
 import (
+	"cafe/pkg/client_sso/models"
 	"cafe/pkg/client_sso_service/api/usecase"
 	"cafe/pkg/common/utils"
+	"encoding/gob"
 	"fmt"
 	wrapErr "github.com/Chekunin/wraperr"
 	"github.com/gin-gonic/gin"
@@ -27,12 +29,10 @@ func (r *rest) routes(router *gin.RouterGroup) {
 }
 
 func (r rest) handlerLogin(c *gin.Context) {
-	var req struct {
-		UserName string `json:"username"`
-		Password string `json:"password"`
-	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from JSON"), err)
+	var req models.ReqLogin
+	dec := gob.NewDecoder(c.Request.Body)
+	if err := dec.Decode(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("decode data"), err)
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
@@ -47,11 +47,10 @@ func (r rest) handlerLogin(c *gin.Context) {
 }
 
 func (r rest) handlerLogout(c *gin.Context) {
-	var req struct {
-		Token string `json:"token"`
-	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from JSON"), err)
+	var req models.ReqLogout
+	dec := gob.NewDecoder(c.Request.Body)
+	if err := dec.Decode(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("decode data"), err)
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
@@ -66,11 +65,10 @@ func (r rest) handlerLogout(c *gin.Context) {
 }
 
 func (r rest) handlerRefreshToken(c *gin.Context) {
-	var req struct {
-		RefreshToken string `json:"refresh_token"`
-	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from JSON"), err)
+	var req models.ReqRefreshToken
+	dec := gob.NewDecoder(c.Request.Body)
+	if err := dec.Decode(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("decode data"), err)
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
@@ -85,13 +83,10 @@ func (r rest) handlerRefreshToken(c *gin.Context) {
 }
 
 func (r rest) handlerCheckPermission(c *gin.Context) {
-	var req struct {
-		Method string `json:"method"`
-		Path   string `json:"path"`
-		Token  string `json:"token"`
-	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from JSON"), err)
+	var req models.ReqCheckPermission
+	dec := gob.NewDecoder(c.Request.Body)
+	if err := dec.Decode(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("decode data"), err)
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}

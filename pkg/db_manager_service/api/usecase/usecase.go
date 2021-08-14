@@ -186,6 +186,14 @@ func (u *Usecase) CreateUser(ctx context.Context, user models.User) (models.User
 	return user, nil
 }
 
+func (u *Usecase) UpdateUser(ctx context.Context, user models.User) (models.User, error) {
+	if err := u.dbManager.UpdateUser(ctx, &user); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager UpdateUser user=%+v", user), err)
+		return models.User{}, err
+	}
+	return user, nil
+}
+
 func (u *Usecase) GetAllUserSubscriptions(ctx context.Context) ([]models.UserSubscription, error) {
 	res, err := u.dbManager.GetAllUserSubscriptions(ctx)
 	if err != nil {
@@ -193,6 +201,22 @@ func (u *Usecase) GetAllUserSubscriptions(ctx context.Context) ([]models.UserSub
 		return nil, err
 	}
 	return res, nil
+}
+
+func (u *Usecase) AddUserSubscription(ctx context.Context, userSubscription models.UserSubscription) (models.UserSubscription, error) {
+	if err := u.dbManager.AddUserSubscription(ctx, &userSubscription); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager AddUserSubscription"), err)
+		return models.UserSubscription{}, err
+	}
+	return userSubscription, nil
+}
+
+func (u *Usecase) DeleteUserSubscription(ctx context.Context, userSubscription models.UserSubscription) error {
+	if err := u.dbManager.DeleteUserSubscription(ctx, userSubscription); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager DeleteUserSubscription"), err)
+		return err
+	}
+	return nil
 }
 
 func (u *Usecase) GetActualUserPhoneCodeByUserID(ctx context.Context, userID int) (models.UserPhoneCode, error) {
@@ -207,6 +231,14 @@ func (u *Usecase) GetActualUserPhoneCodeByUserID(ctx context.Context, userID int
 func (u *Usecase) CreateUserPhoneCode(ctx context.Context, userPhoneCode models.UserPhoneCode) (models.UserPhoneCode, error) {
 	if err := u.dbManager.CreateUserPhoneCode(ctx, &userPhoneCode); err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager CreateUserPhoneCode"), err)
+		return models.UserPhoneCode{}, err
+	}
+	return userPhoneCode, nil
+}
+
+func (u *Usecase) UpdateUserPhoneCode(ctx context.Context, userPhoneCode models.UserPhoneCode) (models.UserPhoneCode, error) {
+	if err := u.dbManager.UpdateUserPhoneCode(ctx, &userPhoneCode); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager UpdateUserPhoneCode"), err)
 		return models.UserPhoneCode{}, err
 	}
 	return userPhoneCode, nil

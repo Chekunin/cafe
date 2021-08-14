@@ -42,13 +42,13 @@ func (u Usecase) RefreshToken(ctx context.Context, refreshToken string) (models.
 	return tokens, nil
 }
 
-func (u Usecase) CheckPermission(ctx context.Context, method, path, token string) (bool, error) {
-	ok, err := u.clientSso.CheckPermission(ctx, method, path, token)
+func (u Usecase) CheckPermission(ctx context.Context, method, path, token string) (models.RespCheckPermission, error) {
+	resp, err := u.clientSso.CheckPermission(ctx, method, path, token)
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("clientSso CheckPermission"), err)
-		return false, err
+		return models.RespCheckPermission{}, err
 	}
-	return ok, nil
+	return resp, nil
 }
 
 func (u Usecase) GetUserID(ctx context.Context, token string) (int, error) {

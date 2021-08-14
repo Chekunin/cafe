@@ -319,6 +319,21 @@ func (h HttpDbManager) CreateUser(ctx context.Context, user *models.User) error 
 	return nil
 }
 
+func (h HttpDbManager) UpdateUser(ctx context.Context, user *models.User) error {
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:     ctx,
+		Method:  "POST",
+		Url:     fmt.Sprintf("/user/%d", user.ID),
+		Result:  user,
+		Payload: *user,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return err
+	}
+	return nil
+}
+
 func (h HttpDbManager) GetAllUserSubscriptions(ctx context.Context) ([]models.UserSubscription, error) {
 	var resp []models.UserSubscription
 	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
@@ -332,6 +347,35 @@ func (h HttpDbManager) GetAllUserSubscriptions(ctx context.Context) ([]models.Us
 		return nil, err
 	}
 	return resp, nil
+}
+
+func (h HttpDbManager) AddUserSubscription(ctx context.Context, userSubscription *models.UserSubscription) error {
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:     ctx,
+		Method:  "POST",
+		Url:     "/user-subscription",
+		Payload: *userSubscription,
+		Result:  userSubscription,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return err
+	}
+	return nil
+}
+
+func (h HttpDbManager) DeleteUserSubscription(ctx context.Context, userSubscription models.UserSubscription) error {
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:     ctx,
+		Method:  "DELETE",
+		Url:     "/user-subscription",
+		Payload: userSubscription,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return err
+	}
+	return nil
 }
 
 func (h HttpDbManager) GetActualUserPhoneCodeByUserID(ctx context.Context, userID int) (models.UserPhoneCode, error) {
@@ -354,6 +398,21 @@ func (h HttpDbManager) CreateUserPhoneCode(ctx context.Context, userPhoneCode *m
 		Ctx:     ctx,
 		Method:  "POST",
 		Url:     "/user-phone-code",
+		Payload: *userPhoneCode,
+		Result:  userPhoneCode,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return err
+	}
+	return nil
+}
+
+func (h HttpDbManager) UpdateUserPhoneCode(ctx context.Context, userPhoneCode *models.UserPhoneCode) error {
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:     ctx,
+		Method:  "POST",
+		Url:     fmt.Sprintf("/user-phone-code/%d", userPhoneCode.ID),
 		Payload: *userPhoneCode,
 		Result:  userPhoneCode,
 	})

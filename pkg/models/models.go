@@ -149,8 +149,8 @@ type User struct {
 	Phone         string    `pg:"phone" json:"phone" api:"phone"`
 	Email         string    `pg:"email" json:"email" api:"email"`
 	Password      string    `pg:"password" json:"password"`
-	PhoneVerified bool      `pg:"phone_verified" json:"phone_verified" api:"phone_verified"`
-	EmailVerified bool      `pg:"email_verified" json:"email_verified" api:"email_verified"`
+	PhoneVerified bool      `pg:"phone_verified,use_zero" json:"phone_verified" api:"phone_verified"`
+	EmailVerified bool      `pg:"email_verified,use_zero" json:"email_verified" api:"email_verified"`
 	RegDateTime   time.Time `pg:"reg_datetime" json:"reg_datetime" api:"reg_datetime"`
 	PhotoPath     string    `pg:"photo_path" json:"photo_path" api:"photo_path"`
 }
@@ -169,6 +169,6 @@ type UserPhoneCode struct {
 	UserID         int       `pg:"user_id" json:"user_id"`
 	Code           string    `pg:"code" json:"code"`
 	CreateDatetime time.Time `pg:"create_datetime" json:"create_datetime"`
-	Actual         bool      `pg:"actual" json:"actual"`
+	Actual         bool      `pg:"actual,use_zero" json:"actual"`
 	LeftAttempts   int       `pg:"left_attempts" json:"left_attempts"`
 }

@@ -122,13 +122,31 @@ func (u *Usecase) ApprovePhone(ctx context.Context, userID int, phone string, co
 		userPhoneCode.LeftAttempts <= 0 ||
 		!userPhoneCode.Actual ||
 		userPhoneCode.CreateDatetime.Add(5*time.Minute).Before(time.Now()) {
-		// todo: уменьшать кол-во попыток входа
+		if userPhoneCode.LeftAttempts > 0 {
+			// уменьшаем кол-во попыток входа
+			userPhoneCode.LeftAttempts -= 1
+			if err := u.dbManager.UpdateUserPhoneCode(ctx, &userPhoneCode); err != nil {
+				err = wrapErr.NewWrapErr(fmt.Errorf("UpdateUserPhoneCode userPhoneCode=%+v", userPhoneCode), err)
+				return err
+			}
+		}
 		err := wrapErr.NewWrapErr(fmt.Errorf("userPhoneCode is incorrect"), errs.ErrorPhoneCodeNotCorrect)
 		return err
 	}
 
 	// помечаем user_phone_code как не актуальный
+	userPhoneCode.Actual = false
+	if err := u.dbManager.UpdateUserPhoneCode(ctx, &userPhoneCode); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("UpdateUserPhoneCode userPhoneCode=%+v", userPhoneCode), err)
+		return err
+	}
+
 	// в users помечаем номер телефона как подтверждённый
+	user.PhoneVerified = true
+	if err := u.dbManager.UpdateUser(ctx, &user); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("UpdateUser user=%+v", user), err)
+		return err
+	}
 
 	return nil
 }

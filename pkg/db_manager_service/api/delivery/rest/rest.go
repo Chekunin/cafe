@@ -42,9 +42,13 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	router.GET("/user-by-name/:name", r.handlerGetUserByName)
 	router.GET("/user-by-phone/:phone", r.handlerGetUserByVerifiedPhone)
 	router.POST("/user", r.handlerCreateUser)
+	router.POST("/user/:id", r.handlerUpdateUser)
 	router.GET("/user-subscriptions", r.handlerGetAllUserSubscriptions)
+	router.POST("/user-subscription", r.handlerAddUserSubscription)
+	router.DELETE("/user-subscription", r.handlerDeleteUserSubscription)
 	router.GET("/actual-user-phone-code-by-user-id/:user_id", r.handlerGetActualUserPhoneCodeByUserID)
 	router.POST("/user-phone-code", r.handlerCreateUserPhoneCode)
+	router.POST("/user-phone-code/:id", r.handlerUpdateUserPhoneCode)
 	router.POST("/activate-user-phone", r.handlerActivateUserPhone)
 }
 
@@ -216,6 +220,35 @@ func (r *rest) handlerCreateUser(c *gin.Context) {
 	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(respUser))
 }
 
+func (r *rest) handlerUpdateUser(c *gin.Context) {
+	var reqUri struct {
+		ID int `uri:"id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&reqUri); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	var req models.User
+	dec := gob.NewDecoder(c.Request.Body)
+	if err := dec.Decode(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("decode data"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	req.ID = reqUri.ID
+
+	respUser, err := r.Usecase.UpdateUser(c.Request.Context(), req)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase UpdateUser"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(respUser))
+}
+
 func (r *rest) handlerGetUserByID(c *gin.Context) {
 	var req struct {
 		UserID int `uri:"user_id" binding:"required"`
@@ -283,6 +316,41 @@ func (r *rest) handlerGetAllUserSubscriptions(c *gin.Context) {
 	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
 }
 
+func (r *rest) handlerAddUserSubscription(c *gin.Context) {
+	var req models.UserSubscription
+	dec := gob.NewDecoder(c.Request.Body)
+	if err := dec.Decode(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("decode data"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := r.Usecase.AddUserSubscription(c.Request.Context(), req)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase AddUserSubscription"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerDeleteUserSubscription(c *gin.Context) {
+	var req models.UserSubscription
+	dec := gob.NewDecoder(c.Request.Body)
+	if err := dec.Decode(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("decode data"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	if err := r.Usecase.DeleteUserSubscription(c.Request.Context(), req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase DeleteUserSubscription"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Status(http.StatusOK)
+}
+
 func (r *rest) handlerGetActualUserPhoneCodeByUserID(c *gin.Context) {
 	var req struct {
 		UserID int `uri:"user_id" binding:"required"`
@@ -299,6 +367,35 @@ func (r *rest) handlerGetActualUserPhoneCodeByUserID(c *gin.Context) {
 		return
 	}
 	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerUpdateUserPhoneCode(c *gin.Context) {
+	var reqUri struct {
+		ID int `uri:"id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&reqUri); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	var req models.UserPhoneCode
+	dec := gob.NewDecoder(c.Request.Body)
+	if err := dec.Decode(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("decode data"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	req.ID = reqUri.ID
+
+	userPhoneCode, err := r.Usecase.UpdateUserPhoneCode(c.Request.Context(), req)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase UpdateUserPhoneCode"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(userPhoneCode))
 }
 
 func (r *rest) handlerCreateUserPhoneCode(c *gin.Context) {
