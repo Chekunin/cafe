@@ -150,6 +150,15 @@ func (u *Usecase) GetAllReviewMedias(ctx context.Context) ([]models.ReviewMedia,
 	return res, nil
 }
 
+func (u *Usecase) GetAllReviewReviewMedias(ctx context.Context) ([]models.ReviewReviewMedias, error) {
+	res, err := u.dbManager.GetAllReviewReviewMedias(ctx)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetAllReviewReviewMedias"), err)
+		return nil, err
+	}
+	return res, nil
+}
+
 func (u *Usecase) GetAllUsers(ctx context.Context) ([]models.User, error) {
 	res, err := u.dbManager.GetAllUsers(ctx)
 	if err != nil {

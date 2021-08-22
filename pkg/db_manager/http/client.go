@@ -268,6 +268,21 @@ func (h HttpDbManager) GetAllReviewMedias(ctx context.Context) ([]models.ReviewM
 	return resp, nil
 }
 
+func (h HttpDbManager) GetAllReviewReviewMedias(ctx context.Context) ([]models.ReviewReviewMedias, error) {
+	var resp []models.ReviewReviewMedias
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "GET",
+		Url:    "/review-review-medias",
+		Result: &resp,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return nil, err
+	}
+	return resp, nil
+}
+
 func (h HttpDbManager) GetAllUsers(ctx context.Context) ([]models.User, error) {
 	var resp []models.User
 	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{

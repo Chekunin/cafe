@@ -92,11 +92,19 @@ create table main.reviews (
 
 create table main.review_medias (
                                     review_media_id serial primary key,
-                                    review_id int references main.reviews(review_id),
+                                    user_id int references main.users(user_id),
                                     media_type main.media_type not null,
-                                    media_path varchar not null,
-                                    "order" int not null
+                                    media_path varchar not null
 );
+
+create table main.review_review_medias (
+                                    review_id int references main.reviews(review_id),
+                                    review_media_id int references main.review_medias(review_media_id),
+                                    "order" int not null,
+                                    primary key (review_id, review_media_id)
+);
+
+CREATE UNIQUE INDEX ON main.review_review_medias (review_id, "order");
 
 create table main.kitchen_categories (
                                          kitchen_category_id serial primary key,

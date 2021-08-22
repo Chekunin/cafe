@@ -137,10 +137,17 @@ type ReviewMedia struct {
 	tableName struct{} `pg:"main.review_medias,discard_unknown_columns"`
 
 	ID        int    `pg:"review_media_id,pk" json:"review_media_id" api:"review_media_id"`
-	ReviewID  int    `pg:"review_id" json:"review_id" api:"review_id"`
+	UserID    int    `pg:"user_id" json:"user_id"`
 	MediaType string `pg:"media_type" json:"media_type" api:"media_type"`
 	MediaPath string `pg:"media_path" json:"media_path" api:"media_path"`
-	Order     int    `pg:"order" json:"order" api:"order"`
+}
+
+type ReviewReviewMedias struct {
+	tableName struct{} `pg:"main.review_review_medias,discard_unknown_columns"`
+
+	ReviewID      int `pg:"review_id" json:"review_id"`
+	ReviewMediaID int `pg:"review_media_id" json:"review_media_id"`
+	Order         int `pg:"order" json:"order"`
 }
 
 type User struct {

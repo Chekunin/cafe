@@ -89,3 +89,35 @@ func (n HttpNSI) GetUserSubscriptionsByFollowerID(ctx context.Context, followerI
 
 	return resp, nil
 }
+
+func (n HttpNSI) GetPlaceEvaluationByUserIDByPlaceID(ctx context.Context, userID int, placeID int) (models.PlaceEvaluation, error) {
+	var resp models.PlaceEvaluation
+	_, err := n.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "GET",
+		Url:    fmt.Sprintf("/place-evaluation/by-user-id/%d/by-place-id/%d", userID, placeID),
+		Result: &resp,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return resp, err
+	}
+
+	return resp, nil
+}
+
+func (n HttpNSI) GetPlaceEvaluationMarksByPlaceEvaluationID(ctx context.Context, placeEvaluationID int) ([]models.PlaceEvaluationMark, error) {
+	var resp []models.PlaceEvaluationMark
+	_, err := n.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "GET",
+		Url:    fmt.Sprintf("/place-evaluation-marks-by-place-evaluation-id/%d", placeEvaluationID),
+		Result: &resp,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return resp, err
+	}
+
+	return resp, nil
+}

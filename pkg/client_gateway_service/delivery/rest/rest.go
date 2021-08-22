@@ -44,6 +44,11 @@ func (r *rest) routes(router *gin.RouterGroup) {
 
 	authorized.POST("/place/:id/evaluation", r.handlerEvaluatePlace)
 	authorized.GET("/place/:id/evaluation", r.handlerGetPlaceEvaluation)
+
+	authorized.GET("/place/:id/evaluations", r.handlerGetPlaceEvaluations)
+
+	authorized.POST("/places/review-media", r.handlerAddPlaceReviewMedia)
+	authorized.POST("/place/:id/review", r.handlerAddPlaceReview)
 }
 
 func (r *rest) handlerGetPlaces(c *gin.Context) {

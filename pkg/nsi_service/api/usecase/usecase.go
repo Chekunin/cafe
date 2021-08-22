@@ -42,3 +42,21 @@ func (u *Usecase) GetUserSubscriptionsByFollowerID(ctx context.Context, follower
 	}
 	return userSubscriptions, nil
 }
+
+func (u *Usecase) GetPlaceEvaluationByUserIDByPlaceID(ctx context.Context, userID int, placeID int) (models.PlaceEvaluation, error) {
+	placeEvaluation, err := u.nsi.GetPlaceEvaluationByUserIDByPlaceID(ctx, userID, placeID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("nsi GetPlaceEvaluationByUserIDByPlaceID userID=%d placeID=%d", userID, placeID), err)
+		return models.PlaceEvaluation{}, err
+	}
+	return placeEvaluation, nil
+}
+
+func (u *Usecase) GetPlaceEvaluationMarksByPlaceEvaluationID(ctx context.Context, placeEvaluationID int) ([]models.PlaceEvaluationMark, error) {
+	placeEvaluationMarks, err := u.nsi.GetPlaceEvaluationMarksByPlaceEvaluationID(ctx, placeEvaluationID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("nsi GetPlaceEvaluationMarksByPlaceEvaluationID placeEvaluationID=%d", placeEvaluationID), err)
+		return nil, err
+	}
+	return placeEvaluationMarks, nil
+}

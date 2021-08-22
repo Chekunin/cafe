@@ -21,6 +21,7 @@ type IDBManager interface {
 	GetAllPlaceEvaluationMarks(ctx context.Context) ([]models.PlaceEvaluationMark, error)
 	GetAllReviews(ctx context.Context) ([]models.Review, error)
 	GetAllReviewMedias(ctx context.Context) ([]models.ReviewMedia, error)
+	GetAllReviewReviewMedias(ctx context.Context) ([]models.ReviewReviewMedias, error)
 	GetAllUsers(ctx context.Context) ([]models.User, error)
 	GetUserByUserID(ctx context.Context, userID int) (models.User, error)
 	GetUserByUserName(ctx context.Context, userName string) (models.User, error)

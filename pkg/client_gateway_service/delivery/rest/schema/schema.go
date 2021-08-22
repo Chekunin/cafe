@@ -37,3 +37,7 @@ type ReqEvaluatePlace struct {
 	PlaceEvaluationMarks []models.PlaceEvaluationMark `json:"place_evaluation_marks"`
 	Comment              string                       `json:"comment"`
 }
+
+type ReqReviewMedia struct {
+	// todo: здесь должны принимать файл
+}

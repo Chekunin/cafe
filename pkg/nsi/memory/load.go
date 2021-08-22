@@ -8,6 +8,7 @@ import (
 	wrapErr "github.com/Chekunin/wraperr"
 	"github.com/kyroy/kdtree"
 	"github.com/kyroy/kdtree/points"
+	"sort"
 )
 
 // todo: сделать load для всех сущностей
@@ -358,11 +359,34 @@ func (n *NSI) loadReviewMedias(ctx context.Context) error {
 	n.context.reviewMediasByReviewID = map[int][]*models.ReviewMedia{}
 	for i, v := range n.context.reviewMedias {
 		n.context.reviewMediasByID[v.ID] = &n.context.reviewMedias[i]
+	}
 
-		if _, has := n.context.reviewMediasByReviewID[v.ReviewID]; !has {
-			n.context.reviewMediasByReviewID[v.ReviewID] = make([]*models.ReviewMedia, 0)
+	// ------
+	// todo: перепроверить оптимальность работы данного метода
+	reviewReviewMedias, err := n.dbManager.GetAllReviewReviewMedias(ctx)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetAllReviewReviewMedias"), err)
+		return err
+	}
+
+	reviewReviewMediasByReviewID := map[int][]*models.ReviewReviewMedias{}
+	for i, v := range reviewReviewMedias {
+		if _, has := reviewReviewMediasByReviewID[v.ReviewID]; !has {
+			reviewReviewMediasByReviewID[v.ReviewID] = make([]*models.ReviewReviewMedias, 0)
 		}
-		n.context.reviewMediasByReviewID[v.ReviewID] = append(n.context.reviewMediasByReviewID[v.ReviewID], &n.context.reviewMedias[i])
+		reviewReviewMediasByReviewID[v.ReviewID] = append(reviewReviewMediasByReviewID[v.ReviewID], &reviewReviewMedias[i])
+	}
+	for reviewID, v := range reviewReviewMediasByReviewID {
+		sort.Slice(reviewReviewMediasByReviewID[reviewID], func(i, j int) bool {
+			return reviewReviewMediasByReviewID[reviewID][i].Order < reviewReviewMediasByReviewID[reviewID][j].Order
+		})
+
+		if _, has := n.context.reviewMediasByReviewID[reviewID]; !has {
+			n.context.reviewMediasByReviewID[reviewID] = make([]*models.ReviewMedia, 0)
+		}
+		for _, v2 := range v {
+			n.context.reviewMediasByReviewID[reviewID] = append(n.context.reviewMediasByReviewID[reviewID], n.context.reviewMediasByID[v2.ReviewMediaID])
+		}
 	}
 
 	return nil

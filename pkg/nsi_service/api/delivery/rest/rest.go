@@ -23,6 +23,8 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	router.GET("/place-by-id/:id", r.handlerGetPlaceByID)
 	router.GET("/places-inside-bound", r.handlerGetPlacesInsideBound)
 	router.GET("/users-subscriptions/by-follower-id/:id", r.handlerGetUserSubscriptionsByFollowerID)
+	router.GET("/place-evaluation/by-user-id/:user_id/by-place-id/:place_id", r.handlerGetPlaceEvaluationByUserIDByPlaceID)
+	router.GET("/place-evaluation-marks-by-place-evaluation-id/:place_evaluation_id", r.handlerGetPlaceEvaluationMarksByPlaceEvaluationID)
 }
 
 func (r *rest) handlerGetPlaceByID(c *gin.Context) {
@@ -77,6 +79,43 @@ func (r *rest) handlerGetUserSubscriptionsByFollowerID(c *gin.Context) {
 	resp, err := r.Usecase.GetUserSubscriptionsByFollowerID(c.Request.Context(), req.FollowerID)
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetUserSubscriptionsByFollowerID followerID=%d", req.FollowerID), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerGetPlaceEvaluationByUserIDByPlaceID(c *gin.Context) {
+	var req struct {
+		UserID  int `uri:"user_id" binding:"required"`
+		PlaceID int `uri:"place_id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	resp, err := r.Usecase.GetPlaceEvaluationByUserIDByPlaceID(c.Request.Context(), req.UserID, req.PlaceID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetPlaceEvaluationByUserIDByPlaceID"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerGetPlaceEvaluationMarksByPlaceEvaluationID(c *gin.Context) {
+	var req struct {
+		PlaceEvaluationID int `uri:"place_evaluation_id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	resp, err := r.Usecase.GetPlaceEvaluationMarksByPlaceEvaluationID(c.Request.Context(), req.PlaceEvaluationID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetPlaceEvaluationMarksByPlaceEvaluationID"), err)
 		c.AbortWithError(GetHttpCode(err), err)
 		return
 	}

@@ -166,6 +166,15 @@ func (d *DbManager) GetAllReviewMedias(ctx context.Context) ([]models.ReviewMedi
 	return res, nil
 }
 
+func (d *DbManager) GetAllReviewReviewMedias(ctx context.Context) ([]models.ReviewReviewMedias, error) {
+	var res []models.ReviewReviewMedias
+	if err := d.db.Model(&res).Select(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("select from db"), err)
+		return nil, err
+	}
+	return res, nil
+}
+
 func (d *DbManager) GetAllUsers(ctx context.Context) ([]models.User, error) {
 	var res []models.User
 	if err := d.db.Model(&res).Select(); err != nil {

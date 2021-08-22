@@ -38,6 +38,7 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	router.GET("/place-evaluation-marks", r.handlerGetAllPlaceEvaluationMarks)
 	router.GET("/reviews", r.handlerGetAllReviews)
 	router.GET("/review-medias", r.handlerGetAllReviewMedias)
+	router.GET("/review-review-medias", r.handlerGetAllReviewReviewMedias)
 	router.GET("/users", r.handlerGetAllUsers)
 	router.GET("/user-by-id/:user_id", r.handlerGetUserByID)
 	router.GET("/user-by-name/:name", r.handlerGetUserByName)
@@ -204,6 +205,16 @@ func (r *rest) handlerGetAllReviewMedias(c *gin.Context) {
 	resp, err := r.Usecase.GetAllReviewMedias(c.Request.Context())
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetAllReviewMedias"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerGetAllReviewReviewMedias(c *gin.Context) {
+	resp, err := r.Usecase.GetAllReviewReviewMedias(c.Request.Context())
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetAllReviewReviewMedias"), err)
 		c.AbortWithError(GetHttpCode(err), err)
 		return
 	}
