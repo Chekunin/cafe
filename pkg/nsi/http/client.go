@@ -121,3 +121,19 @@ func (n HttpNSI) GetPlaceEvaluationMarksByPlaceEvaluationID(ctx context.Context,
 
 	return resp, nil
 }
+
+func (n HttpNSI) GetReviewMediaByID(ctx context.Context, reviewMediaID int) (models.ReviewMedia, error) {
+	var resp models.ReviewMedia
+	_, err := n.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "GET",
+		Url:    fmt.Sprintf("/review-media-by-id/%d", reviewMediaID),
+		Result: &resp,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return resp, err
+	}
+
+	return resp, nil
+}

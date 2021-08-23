@@ -1,27 +1,22 @@
-package client_gateway_service
+package review_media_storage_service
 
 import (
-	"cafe/pkg/client_gateway_service/delivery/rest"
-	"cafe/pkg/client_gateway_service/usecase"
-	httpClientSso "cafe/pkg/client_sso/http"
 	"cafe/pkg/common"
 	"cafe/pkg/common/catcherr"
 	log "cafe/pkg/common/logman"
 	_ "cafe/pkg/common/logman/drivers/stack"
 	_ "cafe/pkg/common/logman/drivers/zap"
 	"cafe/pkg/common/utils"
-	httpDbManager "cafe/pkg/db_manager/http"
-	httpReviewMediaStorage "cafe/pkg/media_storage/http"
-	httpNsi "cafe/pkg/nsi/http"
+	"cafe/pkg/media_storage/s3"
+	"cafe/pkg/review_media_storage_service/api/delivery/rest"
+	"cafe/pkg/review_media_storage_service/api/usecase"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	wrapErr "github.com/Chekunin/wraperr"
 	"github.com/getsentry/sentry-go"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/go-pg/pg/v9"
 	"net/http"
 	"os"
 	"os/signal"
@@ -30,16 +25,13 @@ import (
 )
 
 type Config struct {
-	Listen                string                      `yaml:"listen"`
-	DocPath               string                      `yaml:"docPath"`
-	SentryDSN             string                      `yaml:"sentry_dsn"`
-	SentryENV             string                      `yaml:"sentry_env"`
-	Logger                log.Config                  `yaml:"logger"`
-	LoggerChannels        log.ChannelArbitraryConfigs `yaml:"logChannels"`
-	DbManagerURL          string                      `yaml:"db_manager_url"`
-	NsiURL                string                      `yaml:"nsi_url"`
-	ClientSsoURL          string                      `yaml:"client_sso_url"`
-	ReviewMediaStorageURL string                      `yaml:"review_media_storage_url"`
+	Listen         string                      `yaml:"listen"`
+	DocPath        string                      `yaml:"docPath"`
+	SentryDSN      string                      `yaml:"sentry_dsn"`
+	SentryENV      string                      `yaml:"sentry_env"`
+	Logger         log.Config                  `yaml:"logger"`
+	LoggerChannels log.ChannelArbitraryConfigs `yaml:"logChannels"`
+	S3Config       s3.Config                   `yaml:"s3"`
 }
 
 type App struct {
@@ -47,7 +39,6 @@ type App struct {
 	usecase  *usecase.Usecase
 	route    *gin.Engine
 	doneChan chan bool
-	db       *pg.DB
 }
 
 func NewApp(config Config) *App {
@@ -68,16 +59,11 @@ func NewApp(config Config) *App {
 
 	r := gin.New()
 
-	r.Use(func(c *gin.Context) {
-		c.Writer.Header().Add("Content-type", "application/json")
-		c.Next()
-	})
 	r.Use(common.RequestIdMiddleware())
 	r.Use(common.RequestLogger())
 	r.Use(common.ErrorLogger())
 	r.Use(common.ErrorResponder(func(c *gin.Context, code int, obj interface{}) {
-		data, _ := json.Marshal(obj)
-		c.Data(code, "application/json", data)
+		c.Data(0, "application/x-gob", utils.ToGobBytes(obj))
 	}))
 	r.Use(common.Recovery())
 
@@ -113,37 +99,10 @@ func NewApp(config Config) *App {
 		log.Warning("Document path is undefined")
 	}
 
-	dbManager, err := httpDbManager.NewHttpDbManager(config.DbManagerURL)
-	if err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("NewHttpDbManager"), err)
-		catcherr.AsCritical().CatchAndExit(err)
-	}
+	mediaStorage := s3.New(&config.S3Config)
 
-	nsi, err := httpNsi.NewHttpNSI(config.NsiURL)
-	if err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("NewHttpNSI"), err)
-		catcherr.AsCritical().CatchAndExit(err)
-	}
-
-	clientSso, err := httpClientSso.NewHttpClientSso(config.ClientSsoURL)
-	if err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("NewHttpClientSso"), err)
-		catcherr.AsCritical().CatchAndExit(err)
-	}
-
-	reviewMediaStorage, err := httpReviewMediaStorage.NewHttpMediaStorage(config.ReviewMediaStorageURL)
-	if err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("NewHttpMediaStorage"), err)
-		catcherr.AsCritical().CatchAndExit(err)
-	}
-
-	usecase := usecase.NewUsecase(usecase.NewUsecaseParams{
-		DbManager:          dbManager,
-		Nsi:                nsi,
-		ClientSso:          clientSso,
-		ReviewMediaStorage: reviewMediaStorage,
-	})
-	rest.NewRest(r.Group("/v1"), usecase, clientSso)
+	usecase := usecase.NewUsecase(mediaStorage)
+	rest.NewRest(r.Group("/v1"), usecase)
 
 	app := App{
 		config:   config,
@@ -183,10 +142,6 @@ func (a *App) Run() {
 	log.Info("Shutdown Server (timeout of 3 seconds) ...")
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-
-	if err := a.db.Close(); err != nil {
-		catcherr.Catch(wrapErr.NewWrapErr(fmt.Errorf("close db"), err))
-	}
 
 	if err := srv.Shutdown(ctx); err != nil {
 		catcherr.Catch(wrapErr.NewWrapErr(fmt.Errorf("Server forced to shutdown"), err))

@@ -37,8 +37,11 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	router.POST("/place-evaluation-with-marks", r.handlerAddPlaceEvaluationWithMarks)
 	router.GET("/place-evaluation-marks", r.handlerGetAllPlaceEvaluationMarks)
 	router.GET("/reviews", r.handlerGetAllReviews)
+	router.POST("/review", r.handlerAddReview)
+	router.POST("/review-media", r.handlerAddReviewMedia)
 	router.GET("/review-medias", r.handlerGetAllReviewMedias)
 	router.GET("/review-review-medias", r.handlerGetAllReviewReviewMedias)
+	router.POST("/review-review-medias", r.handlerAddReviewReviewMedias)
 	router.GET("/users", r.handlerGetAllUsers)
 	router.GET("/user-by-id/:user_id", r.handlerGetUserByID)
 	router.GET("/user-by-name/:name", r.handlerGetUserByName)
@@ -174,7 +177,7 @@ func (r *rest) handlerAddPlaceEvaluationWithMarks(c *gin.Context) {
 	}
 
 	if err := r.Usecase.AddPlaceEvaluationWithMarks(c.Request.Context(), &req.PlaceEvaluation, req.Marks); err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("usecase AddUserSubscription"), err)
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase AddPlaceEvaluationWithMarks"), err)
 		c.AbortWithError(GetHttpCode(err), err)
 		return
 	}
@@ -201,6 +204,42 @@ func (r *rest) handlerGetAllReviews(c *gin.Context) {
 	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
 }
 
+func (r *rest) handlerAddReview(c *gin.Context) {
+	var req models.Review
+	dec := gob.NewDecoder(c.Request.Body)
+	if err := dec.Decode(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("decode data"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	review, err := r.Usecase.AddReview(c.Request.Context(), req)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase AddReview"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(review))
+}
+
+func (r *rest) handlerAddReviewMedia(c *gin.Context) {
+	var req models.ReviewMedia
+	dec := gob.NewDecoder(c.Request.Body)
+	if err := dec.Decode(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("decode data"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := r.Usecase.AddReviewMedia(c.Request.Context(), req)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase AddReviewMedia"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
 func (r *rest) handlerGetAllReviewMedias(c *gin.Context) {
 	resp, err := r.Usecase.GetAllReviewMedias(c.Request.Context())
 	if err != nil {
@@ -219,6 +258,24 @@ func (r *rest) handlerGetAllReviewReviewMedias(c *gin.Context) {
 		return
 	}
 	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerAddReviewReviewMedias(c *gin.Context) {
+	var req []models.ReviewReviewMedias
+	dec := gob.NewDecoder(c.Request.Body)
+	if err := dec.Decode(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("decode data"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	err := r.Usecase.AddReviewReviewMedias(c.Request.Context(), req)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase AddReviewReviewMedias"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(req))
 }
 
 func (r *rest) handlerGetAllUsers(c *gin.Context) {

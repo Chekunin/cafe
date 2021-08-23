@@ -157,6 +157,14 @@ func (d *DbManager) GetAllReviews(ctx context.Context) ([]models.Review, error) 
 	return res, nil
 }
 
+func (d *DbManager) AddReview(ctx context.Context, review *models.Review) error {
+	if _, err := d.db.Model(review).Returning("*").Insert(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("insert review=%+v into db", review), err)
+		return err
+	}
+	return nil
+}
+
 func (d *DbManager) GetAllReviewMedias(ctx context.Context) ([]models.ReviewMedia, error) {
 	var res []models.ReviewMedia
 	if err := d.db.Model(&res).Select(); err != nil {
@@ -173,6 +181,22 @@ func (d *DbManager) GetAllReviewReviewMedias(ctx context.Context) ([]models.Revi
 		return nil, err
 	}
 	return res, nil
+}
+
+func (d *DbManager) AddReviewReviewMedias(ctx context.Context, reviewReviewMedias []models.ReviewReviewMedias) error {
+	if _, err := d.db.Model(&reviewReviewMedias).Returning("*").Insert(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("insert reviewReviewMedias into db"), err)
+		return err
+	}
+	return nil
+}
+
+func (d *DbManager) AddReviewMedia(ctx context.Context, reviewMedia *models.ReviewMedia) error {
+	if _, err := d.db.Model(reviewMedia).Returning("*").Insert(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("insert reviewMedia=%+v into db", *reviewMedia), err)
+		return err
+	}
+	return nil
 }
 
 func (d *DbManager) GetAllUsers(ctx context.Context) ([]models.User, error) {

@@ -1,0 +1,26 @@
+---
+listen: :80
+
+docPath: /app/doc
+
+sentry_dsn: ""
+sentry_env: localhost
+
+logger:
+  defaultchannel: stack
+  level: ${LOG_LEVEL}
+logChannels:
+  stack:
+    driver: stack
+    extra:
+      channels:
+        - name: stderr
+  stderr:
+    driver: zap
+
+s3:
+  access_id: "AKIAV2FWCOYKYT7U23L4"
+  access_key: "YCRxdzPj7eq32R/NWSUVzKM6yABLLHzN6zvzQcWe"
+  region: "eu-north-1"
+  bucket: "cafe-revision-media"
+  s3_force_path_style: false

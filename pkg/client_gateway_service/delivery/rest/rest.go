@@ -35,6 +35,8 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	router.GET("/places", r.handlerGetPlaces)
 	router.GET("/place-by-id/:id", r.handlerGetPlaceByID)
 
+	router.GET("/places/review-media/:id/data", r.handlerGetPlaceReviewMediaData)
+
 	authorized := router.Group("/")
 	authorized.Use(r.authMiddleware())
 	authorized.POST("/auth/logout", r.handlerLogout)
@@ -91,5 +93,6 @@ func (r *rest) handlerGetPlaceByID(c *gin.Context) {
 		return
 	}
 
+	// todo: здесь надо возвращать уникальный id картинки
 	c.JSON(http.StatusOK, models.Convert(places, modelTag))
 }

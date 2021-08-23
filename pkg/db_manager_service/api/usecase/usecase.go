@@ -141,6 +141,24 @@ func (u *Usecase) GetAllReviews(ctx context.Context) ([]models.Review, error) {
 	return res, nil
 }
 
+func (u *Usecase) AddReview(ctx context.Context, review models.Review) (models.Review, error) {
+	err := u.dbManager.AddReview(ctx, &review)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager AddReview"), err)
+		return models.Review{}, err
+	}
+	return review, nil
+}
+
+func (u *Usecase) AddReviewMedia(ctx context.Context, reviewMedia models.ReviewMedia) (models.ReviewMedia, error) {
+	err := u.dbManager.AddReviewMedia(ctx, &reviewMedia)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager AddReviewMedia"), err)
+		return models.ReviewMedia{}, err
+	}
+	return reviewMedia, nil
+}
+
 func (u *Usecase) GetAllReviewMedias(ctx context.Context) ([]models.ReviewMedia, error) {
 	res, err := u.dbManager.GetAllReviewMedias(ctx)
 	if err != nil {
@@ -157,6 +175,15 @@ func (u *Usecase) GetAllReviewReviewMedias(ctx context.Context) ([]models.Review
 		return nil, err
 	}
 	return res, nil
+}
+
+func (u *Usecase) AddReviewReviewMedias(ctx context.Context, reviewReviewMedias []models.ReviewReviewMedias) error {
+	err := u.dbManager.AddReviewReviewMedias(ctx, reviewReviewMedias)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager AddReviewReviewMedias"), err)
+		return err
+	}
+	return nil
 }
 
 func (u *Usecase) GetAllUsers(ctx context.Context) ([]models.User, error) {

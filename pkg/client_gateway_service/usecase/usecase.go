@@ -3,6 +3,7 @@ package usecase
 import (
 	"cafe/pkg/client_sso"
 	"cafe/pkg/db_manager"
+	"cafe/pkg/media_storage"
 	"cafe/pkg/models"
 	"cafe/pkg/nsi"
 	"context"
@@ -13,24 +14,27 @@ import (
 )
 
 type Usecase struct {
-	dbManager db_manager.IDBManager
-	nsi       nsi.INSI
-	clientSso client_sso.IClientSso
+	dbManager          db_manager.IDBManager
+	nsi                nsi.INSI
+	clientSso          client_sso.IClientSso
+	reviewMediaStorage media_storage.IMediaStorage
 }
 
 type NewUsecaseParams struct {
-	DbManager db_manager.IDBManager
-	Nsi       nsi.INSI
-	ClientSso client_sso.IClientSso
+	DbManager          db_manager.IDBManager
+	Nsi                nsi.INSI
+	ClientSso          client_sso.IClientSso
+	ReviewMediaStorage media_storage.IMediaStorage
 }
 
 func NewUsecase(params NewUsecaseParams) *Usecase {
 	rand.Seed(time.Now().UnixNano())
 
 	return &Usecase{
-		dbManager: params.DbManager,
-		nsi:       params.Nsi,
-		clientSso: params.ClientSso,
+		dbManager:          params.DbManager,
+		nsi:                params.Nsi,
+		clientSso:          params.ClientSso,
+		reviewMediaStorage: params.ReviewMediaStorage,
 	}
 }
 

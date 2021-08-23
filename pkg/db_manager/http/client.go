@@ -253,6 +253,36 @@ func (h HttpDbManager) GetAllReviews(ctx context.Context) ([]models.Review, erro
 	return resp, nil
 }
 
+func (h HttpDbManager) AddReview(ctx context.Context, review *models.Review) error {
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:     ctx,
+		Method:  "POST",
+		Url:     "/review",
+		Payload: *review,
+		Result:  review,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return err
+	}
+	return nil
+}
+
+func (h HttpDbManager) AddReviewMedia(ctx context.Context, reviewMedia *models.ReviewMedia) error {
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:     ctx,
+		Method:  "POST",
+		Url:     "/review-media",
+		Payload: *reviewMedia,
+		Result:  reviewMedia,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return err
+	}
+	return nil
+}
+
 func (h HttpDbManager) GetAllReviewMedias(ctx context.Context) ([]models.ReviewMedia, error) {
 	var resp []models.ReviewMedia
 	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
@@ -281,6 +311,21 @@ func (h HttpDbManager) GetAllReviewReviewMedias(ctx context.Context) ([]models.R
 		return nil, err
 	}
 	return resp, nil
+}
+
+func (h HttpDbManager) AddReviewReviewMedias(ctx context.Context, reviewReviewMedias []models.ReviewReviewMedias) error {
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:     ctx,
+		Method:  "POST",
+		Url:     "/review-review-medias",
+		Payload: reviewReviewMedias,
+		Result:  &reviewReviewMedias,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return err
+	}
+	return nil
 }
 
 func (h HttpDbManager) GetAllUsers(ctx context.Context) ([]models.User, error) {

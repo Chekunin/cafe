@@ -5,6 +5,8 @@ import (
 	"context"
 	"fmt"
 	wrapErr "github.com/Chekunin/wraperr"
+	"github.com/google/uuid"
+	"io"
 	"time"
 )
 
@@ -39,4 +41,88 @@ func (u *Usecase) GetPlaceEvaluation(ctx context.Context, placeID int, userID in
 	}
 
 	return placeEvaluation, marks, nil
+}
+
+func (u *Usecase) AddPlaceReviewMedia(ctx context.Context, userID int, reader io.Reader) (models.ReviewMedia, error) {
+	mediaPath := fmt.Sprintf("/%d/%s", userID, uuid.New().String())
+	object, err := u.reviewMediaStorage.Put(ctx, mediaPath, reader)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("reviewMediaStorage put path=%s", mediaPath), err)
+		return models.ReviewMedia{}, err
+	}
+	mediaPath = object.Path
+
+	//firstBytes := make([]byte, 512)
+	//reader.Read(firstBytes)
+	//fileType := http.DetectContentType(firstBytes)
+
+	mediaType := models.MediaTypePhoto
+	// todo: здесь определять тип
+
+	reviewMedia := models.ReviewMedia{
+		UserID:    userID,
+		MediaType: mediaType,
+		MediaPath: mediaPath,
+	}
+
+	if err := u.dbManager.AddReviewMedia(ctx, &reviewMedia); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager AddReviewMedia reviewMedia=%+v", reviewMedia), err)
+		return models.ReviewMedia{}, err
+	}
+
+	return reviewMedia, nil
+}
+
+func (u *Usecase) GetReviewMediaData(ctx context.Context, reviewMediaID int) (io.ReadCloser, string, error) {
+	reviewMedia, err := u.nsi.GetReviewMediaByID(ctx, reviewMediaID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("nsi GetReviewMediaByID reviewMediaID=%d", reviewMediaID), err)
+		return nil, "", err
+	}
+
+	readCloser, contentType, err := u.reviewMediaStorage.GetStream(ctx, reviewMedia.MediaPath)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("reviewMediaStorage GetStream mediaPath=%s", reviewMedia.MediaPath), err)
+		return nil, "", err
+	}
+	return readCloser, contentType, nil
+}
+
+func (u *Usecase) AddPlaceReview(ctx context.Context, userID int, text string, reviewMediaIDs []int) (models.Review, error) {
+	// создаём новое ревью в БД
+	review := models.Review{
+		UserID:          userID,
+		Text:            text,
+		PublishDateTime: time.Now(),
+	}
+	if err := u.dbManager.AddReview(ctx, &review); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager AddReview review=%+v", review), err)
+		return models.Review{}, err
+	}
+
+	// создаём связки review с media в БД
+	var reviewReviewMedias []models.ReviewReviewMedias
+	for i, v := range reviewMediaIDs {
+		reviewReviewMedias = append(reviewReviewMedias, models.ReviewReviewMedias{
+			ReviewID:      review.ID,
+			ReviewMediaID: v,
+			Order:         i + 1,
+		})
+	}
+	if err := u.dbManager.AddReviewReviewMedias(ctx, reviewReviewMedias); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager AddReviewReviewMedias"), err)
+		return models.Review{}, err
+	}
+
+	// достаём из БД нужные review_media и кладём в объект review
+	for _, v := range reviewMediaIDs {
+		reviewMedia, err := u.nsi.GetReviewMediaByID(ctx, v)
+		if err != nil {
+			err = wrapErr.NewWrapErr(fmt.Errorf("nsi GetReviewMediaByID reviewMediaID=%d", v), err)
+			return models.Review{}, err
+		}
+		review.ReviewMedias = append(review.ReviewMedias, reviewMedia)
+	}
+
+	return review, nil
 }

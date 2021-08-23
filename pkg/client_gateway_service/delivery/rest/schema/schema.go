@@ -38,6 +38,7 @@ type ReqEvaluatePlace struct {
 	Comment              string                       `json:"comment"`
 }
 
-type ReqReviewMedia struct {
-	// todo: здесь должны принимать файл
+type ReqAddPlaceReview struct {
+	Text           string `json:"text"`
+	ReviewMediaIDs []int  `json:"review_media_ids"`
 }

@@ -3,6 +3,7 @@ package rest
 import (
 	"bytes"
 	"cafe/pkg/client_gateway_service/delivery/rest/schema"
+	"cafe/pkg/client_sso/models"
 	"cafe/pkg/common"
 	"fmt"
 	wrapErr "github.com/Chekunin/wraperr"
@@ -111,7 +112,28 @@ func (r *rest) handlerGetPlaceEvaluations(c *gin.Context) {
 }
 
 func (r *rest) handlerAddPlaceReview(c *gin.Context) {
-	panic("implement me")
+	var req schema.ReqAddPlaceReview
+	if err := c.ShouldBindJSON(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from body"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	userID, has := common.FromContextUserID(c.Request.Context())
+	if !has {
+		err := wrapErr.NewWrapErr(fmt.Errorf("userID is not in context"), nil)
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	review, err := r.usecase.AddPlaceReview(c.Request.Context(), userID, req.Text, req.ReviewMediaIDs)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase AddPlaceReview"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+
+	c.JSON(http.StatusOK, models.Convert(review, modelTag))
 }
 
 func (r *rest) handlerAddPlaceReviewMedia(c *gin.Context) {
@@ -142,10 +164,47 @@ func (r *rest) handlerAddPlaceReviewMedia(c *gin.Context) {
 	}
 	defer file.Close()
 
-	var buf bytes.Buffer
-	if _, err := buf.ReadFrom(file); err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("read to buffer from filename=%s", fileHeaders[0].Filename), err)
+	userID, has := common.FromContextUserID(c.Request.Context())
+	if !has {
+		err := wrapErr.NewWrapErr(fmt.Errorf("userID is not in context"), nil)
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
+
+	reviewMedia, err := r.usecase.AddPlaceReviewMedia(c.Request.Context(), userID, file)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase AddPlaceReviewMedia"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+
+	c.JSON(http.StatusOK, models.Convert(reviewMedia, modelTag))
+}
+
+func (r *rest) handlerGetPlaceReviewMediaData(c *gin.Context) {
+	var reqUri struct {
+		ReviewMediaID int `uri:"id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&reqUri); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	stream, contentType, err := r.usecase.GetReviewMediaData(c.Request.Context(), reqUri.ReviewMediaID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetReviewMediaData reviewMediaID=%d", reqUri.ReviewMediaID), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+
+	buf := new(bytes.Buffer)
+	if _, err := buf.ReadFrom(stream); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("buf ReadFrom"), err)
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	stream.Close()
+	c.Writer.Header().Set("Content-type", contentType)
+	c.Data(http.StatusOK, contentType, buf.Bytes())
 }

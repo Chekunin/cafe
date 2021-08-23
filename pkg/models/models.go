@@ -4,6 +4,15 @@ import (
 	"time"
 )
 
+//MediaType type
+type MediaType string
+
+//MediaType enum
+const (
+	MediaTypePhoto MediaType = "photo"
+	MediaTypeVideo MediaType = "video"
+)
+
 type Place struct {
 	tableName struct{} `pg:"main.places,discard_unknown_columns"`
 
@@ -136,10 +145,10 @@ type Review struct {
 type ReviewMedia struct {
 	tableName struct{} `pg:"main.review_medias,discard_unknown_columns"`
 
-	ID        int    `pg:"review_media_id,pk" json:"review_media_id" api:"review_media_id"`
-	UserID    int    `pg:"user_id" json:"user_id"`
-	MediaType string `pg:"media_type" json:"media_type" api:"media_type"`
-	MediaPath string `pg:"media_path" json:"media_path" api:"media_path"`
+	ID        int       `pg:"review_media_id,pk" json:"review_media_id" api:"review_media_id"`
+	UserID    int       `pg:"user_id" json:"user_id"`
+	MediaType MediaType `pg:"media_type" json:"media_type" api:"media_type"`
+	MediaPath string    `pg:"media_path" json:"media_path"`
 }
 
 type ReviewReviewMedias struct {

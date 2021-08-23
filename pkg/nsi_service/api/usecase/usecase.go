@@ -60,3 +60,12 @@ func (u *Usecase) GetPlaceEvaluationMarksByPlaceEvaluationID(ctx context.Context
 	}
 	return placeEvaluationMarks, nil
 }
+
+func (u *Usecase) GetReviewMediaByID(ctx context.Context, reviewMediaID int) (models.ReviewMedia, error) {
+	reviewMedia, err := u.nsi.GetReviewMediaByID(ctx, reviewMediaID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("nsi GetReviewMediaByID reviewMediaID=%d", reviewMediaID), err)
+		return models.ReviewMedia{}, err
+	}
+	return reviewMedia, nil
+}

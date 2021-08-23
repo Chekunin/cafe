@@ -1,7 +1,7 @@
 MODULE = merlin
 VERSION = $(shell git describe --tags --always --dirty)
 OS = $(shell uname | tr A-Z a-z)
-BUILD_IMAGE ?= golang:1.15
+BUILD_IMAGE ?= golang:1.17
 SERVICES = $(shell ls cmd)
 ABSENT_BINARIES = $(shell BINARIES="$(shell [ -d bin ] && ls bin)"; \
 	echo $(SERVICES) $${BINARIES} $${BINARIES} | tr ' ' '\n' | sort | uniq -u)

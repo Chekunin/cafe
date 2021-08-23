@@ -6,7 +6,7 @@ x-go-service: &go-service
     - db
     - migrator
     - redis
-  image: golang:1.15
+  image: golang:1.17
   restart: always
   volumes:
     - ./bin:/app/bin
@@ -53,7 +53,15 @@ services:
       LOG_LEVEL: 5
     ports:
       - 8083:80
-    stop_signal: SIGTERM
+
+  review_media_storage_service:
+    <<: *go-service
+    command: ["./bin/review_media_storage_service", "-c", "./configs/review_media_storage_service/config.yaml"]
+    environment:
+      APP: review_media_storage_service
+      LOG_LEVEL: 5
+    ports:
+      - 8084:80
 
   db:
     image: postgres:13

@@ -4,6 +4,10 @@ go 1.15
 
 require (
 	github.com/Chekunin/wraperr v0.1.1
+	github.com/aws/aws-sdk-go-v2 v1.8.1
+	github.com/aws/aws-sdk-go-v2/config v1.6.1
+	github.com/aws/aws-sdk-go-v2/credentials v1.3.3
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.13.0
 	github.com/getsentry/sentry-go v0.11.0
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.7.2

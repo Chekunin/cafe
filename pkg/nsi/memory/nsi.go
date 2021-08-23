@@ -100,3 +100,12 @@ func (n *NSI) GetPlaceEvaluationMarksByPlaceEvaluationID(ctx context.Context, pl
 
 	return res, nil
 }
+
+func (n *NSI) GetReviewMediaByID(ctx context.Context, reviewMediaID int) (models.ReviewMedia, error) {
+	v, has := n.context.reviewMediasByID[reviewMediaID]
+	if !has {
+		err := wrapErr.NewWrapErr(fmt.Errorf("reviewMediasByID reviewMediaID=%d", reviewMediaID), errs.ErrorEntityNotFound)
+		return models.ReviewMedia{}, err
+	}
+	return *v, nil
+}
