@@ -122,6 +122,9 @@ func (d *DbManager) AddPlaceEvaluationWithMarks(ctx context.Context, placeEvalua
 		return err
 	}
 
+	for i := range marks {
+		marks[i].PlaceEvaluationID = placeEvaluation.ID
+	}
 	if _, err := d.db.Model(&marks).Returning("*").Insert(); err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("insert marks=%+v into db", marks), err)
 		return err

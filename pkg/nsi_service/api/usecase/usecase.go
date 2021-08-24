@@ -69,3 +69,12 @@ func (u *Usecase) GetReviewMediaByID(ctx context.Context, reviewMediaID int) (mo
 	}
 	return reviewMedia, nil
 }
+
+func (u *Usecase) GetPlaceEvaluationCriterions(ctx context.Context) ([]models.EvaluationCriterion, error) {
+	evaluationCriterions, err := u.nsi.GetPlaceEvaluationCriterions(ctx)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("nsi evaluationCriterions"), err)
+		return nil, err
+	}
+	return evaluationCriterions, nil
+}

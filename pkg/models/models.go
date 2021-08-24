@@ -13,6 +13,16 @@ const (
 	MediaTypeVideo MediaType = "video"
 )
 
+//Mark type
+type Mark string
+
+//Mark enum
+const (
+	MarkExcellent MediaType = "excellent"
+	MarkGood      MediaType = "good"
+	MarkBad       MediaType = "bad"
+)
+
 type Place struct {
 	tableName struct{} `pg:"main.places,discard_unknown_columns"`
 
@@ -126,9 +136,9 @@ type PlaceEvaluation struct {
 type PlaceEvaluationMark struct {
 	tableName struct{} `pg:"main.place_evaluation_marks,discard_unknown_columns"`
 
-	PlaceEvaluationID     int    `pg:"place_evaluation_id" json:"-" api:"place_evaluation_id"`
-	EvaluationCriterionID int    `pg:"evaluation_criterion_id" json:"evaluation_criterion_id" api:"evaluation_criterion_id"`
-	Mark                  string `pg:"mark" json:"mark" api:"mark"`
+	PlaceEvaluationID     int  `pg:"place_evaluation_id" json:"-" api:"place_evaluation_id"`
+	EvaluationCriterionID int  `pg:"evaluation_criterion_id" json:"evaluation_criterion_id" api:"evaluation_criterion_id"`
+	Mark                  Mark `pg:"mark" json:"mark" api:"mark"`
 }
 
 type Review struct {

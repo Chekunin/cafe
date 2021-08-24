@@ -109,3 +109,9 @@ func (n *NSI) GetReviewMediaByID(ctx context.Context, reviewMediaID int) (models
 	}
 	return *v, nil
 }
+
+func (n *NSI) GetPlaceEvaluationCriterions(ctx context.Context) ([]models.EvaluationCriterion, error) {
+	res := make([]models.EvaluationCriterion, len(n.context.evaluationCriterions))
+	copy(res, n.context.evaluationCriterions)
+	return res, nil
+}

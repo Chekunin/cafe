@@ -126,3 +126,12 @@ func (u *Usecase) AddPlaceReview(ctx context.Context, userID int, text string, r
 
 	return review, nil
 }
+
+func (u *Usecase) GetPlaceEvaluationCriterions(ctx context.Context) ([]models.EvaluationCriterion, error) {
+	evaluationCriterion, err := u.nsi.GetPlaceEvaluationCriterions(ctx)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("nsi GetPlaceEvaluationCriterions"), err)
+		return nil, err
+	}
+	return evaluationCriterion, nil
+}

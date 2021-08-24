@@ -208,3 +208,13 @@ func (r *rest) handlerGetPlaceReviewMediaData(c *gin.Context) {
 	c.Writer.Header().Set("Content-type", contentType)
 	c.Data(http.StatusOK, contentType, buf.Bytes())
 }
+
+func (r *rest) handlerGetPlaceEvaluationCriterions(c *gin.Context) {
+	resp, err := r.usecase.GetPlaceEvaluationCriterions(c.Request.Context())
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetPlaceEvaluationCriterions"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.JSON(http.StatusOK, models.Convert(resp, modelTag))
+}

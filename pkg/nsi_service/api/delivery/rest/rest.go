@@ -26,6 +26,7 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	router.GET("/place-evaluation/by-user-id/:user_id/by-place-id/:place_id", r.handlerGetPlaceEvaluationByUserIDByPlaceID)
 	router.GET("/place-evaluation-marks-by-place-evaluation-id/:place_evaluation_id", r.handlerGetPlaceEvaluationMarksByPlaceEvaluationID)
 	router.GET("/review-media-by-id/:id", r.handlerGetReviewMediaByID)
+	router.GET("/evaluation-criterions", r.handlerGetPlaceEvaluationCriterions)
 }
 
 func (r *rest) handlerGetPlaceByID(c *gin.Context) {
@@ -135,6 +136,16 @@ func (r *rest) handlerGetReviewMediaByID(c *gin.Context) {
 	resp, err := r.Usecase.GetReviewMediaByID(c.Request.Context(), req.ReviewMediaID)
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetReviewMediaByID id=%d", req.ReviewMediaID), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerGetPlaceEvaluationCriterions(c *gin.Context) {
+	resp, err := r.Usecase.GetPlaceEvaluationCriterions(c.Request.Context())
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetPlaceEvaluationCriterions"), err)
 		c.AbortWithError(GetHttpCode(err), err)
 		return
 	}

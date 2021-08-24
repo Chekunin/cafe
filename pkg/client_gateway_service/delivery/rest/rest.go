@@ -37,6 +37,8 @@ func (r *rest) routes(router *gin.RouterGroup) {
 
 	router.GET("/places/review-media/:id/data", r.handlerGetPlaceReviewMediaData)
 
+	router.GET("/places/evaluation/criterions", r.handlerGetPlaceEvaluationCriterions)
+
 	authorized := router.Group("/")
 	authorized.Use(r.authMiddleware())
 	authorized.POST("/auth/logout", r.handlerLogout)
