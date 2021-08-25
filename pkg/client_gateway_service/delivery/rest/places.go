@@ -218,3 +218,91 @@ func (r *rest) handlerGetPlaceEvaluationCriterions(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, models.Convert(resp, modelTag))
 }
+
+func (r *rest) handlerGetOwnPlacesReviews(c *gin.Context) {
+	userID, has := common.FromContextUserID(c.Request.Context())
+	if !has {
+		err := wrapErr.NewWrapErr(fmt.Errorf("userID is not in context"), nil)
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	var reqQuery struct {
+		LastReviewID int `form:"last_review_id"`
+		Limit        int `form:"limit,default=20" binding:"gte=0,lte=50"`
+	}
+	if err := c.ShouldBindQuery(&reqQuery); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from query"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := r.usecase.GetPlacesReviewsOfUserID(c.Request.Context(), userID, reqQuery.LastReviewID, reqQuery.Limit)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetPlacesReviewsOfUserID userID=%d", userID), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+
+	c.JSON(http.StatusOK, models.Convert(resp, modelTag))
+}
+
+func (r *rest) handlerGetPlacesReviewsByUserID(c *gin.Context) {
+	var reqUri struct {
+		UserID int `uri:"id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&reqUri); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	var reqQuery struct {
+		LastReviewID int `form:"last_review_id"`
+		Limit        int `form:"limit,default=20" binding:"gte=0,lte=50"`
+	}
+	if err := c.ShouldBindQuery(&reqQuery); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from query"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := r.usecase.GetPlacesReviewsOfUserID(c.Request.Context(), reqUri.UserID, reqQuery.LastReviewID, reqQuery.Limit)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetPlacesReviewsOfUserID userID=%d", reqUri.UserID), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+
+	c.JSON(http.StatusOK, models.Convert(resp, modelTag))
+}
+
+func (r *rest) handlerGetPlaceAdvertsByPlaceID(c *gin.Context) {
+	var reqUri struct {
+		PlaceID int `uri:"id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&reqUri); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	var reqQuery struct {
+		LastAdvertID int `form:"last_advert_id"`
+		Limit        int `form:"limit,default=20" binding:"gte=0,lte=50"`
+	}
+	if err := c.ShouldBindQuery(&reqQuery); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from query"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := r.usecase.GetPlaceAdvertsByPlaceID(c.Request.Context(), reqUri.PlaceID, reqQuery.LastAdvertID, reqQuery.Limit)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetPlaceAdvertsByPlaceID placeID=%d", reqUri.PlaceID), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+
+	c.JSON(http.StatusOK, models.Convert(resp, modelTag))
+}

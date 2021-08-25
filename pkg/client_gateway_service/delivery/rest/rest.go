@@ -39,6 +39,12 @@ func (r *rest) routes(router *gin.RouterGroup) {
 
 	router.GET("/places/evaluation/criterions", r.handlerGetPlaceEvaluationCriterions)
 
+	// записи конкретного пользователя
+	router.GET("/user/:id/posts", r.handlerGetPlacesReviewsByUserID)
+
+	// записи конкретного заведения
+	router.GET("/place/:id/posts", r.handlerGetPlaceAdvertsByPlaceID)
+
 	authorized := router.Group("/")
 	authorized.Use(r.authMiddleware())
 	authorized.POST("/auth/logout", r.handlerLogout)
@@ -53,6 +59,11 @@ func (r *rest) routes(router *gin.RouterGroup) {
 
 	authorized.POST("/places/review-media", r.handlerAddPlaceReviewMedia)
 	authorized.POST("/place/:id/review", r.handlerAddPlaceReview)
+
+	// запрос на получение своих собственных записей
+	authorized.GET("/places/reviews", r.handlerGetOwnPlacesReviews)
+	// запрос на получение своей ленты (главной страницы с чужими записями)
+	authorized.GET("/feed", r.handlerGetFeed)
 }
 
 func (r *rest) handlerGetPlaces(c *gin.Context) {

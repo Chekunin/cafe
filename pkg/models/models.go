@@ -63,8 +63,8 @@ type Category struct {
 type PlaceCategory struct {
 	tableName struct{} `pg:"main.places_categories,discard_unknown_columns"`
 
-	PlaceID    int `pg:"place_id" json:"place_id" api:"place_id"`
-	CategoryID int `pg:"category_id" json:"category_id" api:"category_id"`
+	PlaceID    int `pg:"place_id,pk" json:"place_id" api:"place_id"`
+	CategoryID int `pg:"category_id,pk" json:"category_id" api:"category_id"`
 }
 
 type KitchenCategory struct {
@@ -77,8 +77,8 @@ type KitchenCategory struct {
 type PlaceKitchenCategory struct {
 	tableName struct{} `pg:"main.places_kitchen_categories,discard_unknown_columns"`
 
-	PlaceID           int `pg:"place_id" json:"place_id" api:"place_id"`
-	KitchenCategoryID int `pg:"kitchen_category_id" json:"kitchen_category_id" api:"kitchen_category_id"`
+	PlaceID           int `pg:"place_id,pk" json:"place_id" api:"place_id"`
+	KitchenCategoryID int `pg:"kitchen_category_id,pk" json:"kitchen_category_id" api:"kitchen_category_id"`
 }
 
 type PlaceSchedule struct {
@@ -98,20 +98,29 @@ type Advert struct {
 
 	ID              int       `pg:"advert_id,pk" json:"advert_id" api:"advert_id"`
 	PlaceID         int       `pg:"place_id" json:"place_id" api:"place_id"`
+	RestaurateurID  int       `pg:"restaurateur_id" json:"restaurateur_id"`
 	Text            string    `pg:"text" json:"text" api:"text"`
 	PublishDateTime time.Time `pg:"publish_datetime" json:"publish_datetime" api:"publish_datetime"`
 
-	AdvertMedias []AdvertMedia `pg:"-" json:"advert_medias" api:"advert_medias"`
+	AdvertMedias []AdvertMedia `pg:"many2many:main.advert_advert_medias" json:"advert_medias" api:"advert_medias"`
 }
 
 type AdvertMedia struct {
 	tableName struct{} `pg:"main.advert_medias,discard_unknown_columns"`
 
-	ID        int    `pg:"advert_media_id,pk" json:"advert_media_id" api:"advert_media_id"`
-	AdvertID  int    `pg:"advert_id" json:"advert_id" api:"advert_id"`
-	MediaType string `pg:"media_type" json:"media_type" api:"media_type"`
-	MediaPath string `pg:"media_path" json:"media_path" api:"media_path"`
-	Order     int    `pg:"order" json:"order" api:"order"`
+	ID             int    `pg:"advert_media_id,pk" json:"advert_media_id" api:"advert_media_id"`
+	PlaceID        int    `pg:"place_id" json:"place_id" api:"place_id"`
+	RestaurateurID int    `pg:"restaurateur_id" json:"restaurateur_id"`
+	MediaType      string `pg:"media_type" json:"media_type" api:"media_type"`
+	MediaPath      string `pg:"media_path" json:"media_path" api:"media_path"`
+}
+
+type AdvertAdvertMedias struct {
+	tableName struct{} `pg:"main.advert_advert_medias,discard_unknown_columns"`
+
+	AdvertID      int `pg:"advert_id,pk" json:"advert_id"`
+	AdvertMediaID int `pg:"advert_media_id,pk" json:"advert_media_id"`
+	Order         int `pg:"order" json:"order"`
 }
 
 type EvaluationCriterion struct {
@@ -146,10 +155,11 @@ type Review struct {
 
 	ID              int       `pg:"review_id,pk" json:"review_id" api:"review_id"`
 	UserID          int       `pg:"user_id" json:"user_id" api:"user_id"`
+	PlaceID         int       `pg:"place_id" json:"place_id" api:"place_id"`
 	Text            string    `pg:"text" json:"text" api:"text"`
 	PublishDateTime time.Time `pg:"publish_datetime" json:"publish_datetime" api:"publish_datetime"`
 
-	ReviewMedias []ReviewMedia `pg:"-" json:"review_medias" api:"review_medias"`
+	ReviewMedias []ReviewMedia `pg:"many2many:main.review_review_medias" json:"review_medias" api:"review_medias"`
 }
 
 type ReviewMedia struct {
@@ -164,8 +174,8 @@ type ReviewMedia struct {
 type ReviewReviewMedias struct {
 	tableName struct{} `pg:"main.review_review_medias,discard_unknown_columns"`
 
-	ReviewID      int `pg:"review_id" json:"review_id"`
-	ReviewMediaID int `pg:"review_media_id" json:"review_media_id"`
+	ReviewID      int `pg:"review_id,pk" json:"review_id"`
+	ReviewMediaID int `pg:"review_media_id,pk" json:"review_media_id"`
 	Order         int `pg:"order" json:"order"`
 }
 
@@ -186,8 +196,8 @@ type User struct {
 type UserSubscription struct {
 	tableName struct{} `pg:"main.users_subscriptions,discard_unknown_columns"`
 
-	FollowerUserID int `pg:"follower_user_id" json:"follower_user_id" api:"follower_user_id"`
-	FollowedUserID int `pg:"followed_user_id" json:"followed_user_id" api:"followed_user_id"`
+	FollowerUserID int `pg:"follower_user_id,pk" json:"follower_user_id" api:"follower_user_id"`
+	FollowedUserID int `pg:"followed_user_id,pk" json:"followed_user_id" api:"followed_user_id"`
 }
 
 type UserPhoneCode struct {
@@ -199,4 +209,29 @@ type UserPhoneCode struct {
 	CreateDatetime time.Time `pg:"create_datetime" json:"create_datetime"`
 	Actual         bool      `pg:"actual,use_zero" json:"actual"`
 	LeftAttempts   int       `pg:"left_attempts" json:"left_attempts"`
+}
+
+type Restaurateur struct {
+	tableName struct{} `pg:"main.restaurateurs,discard_unknown_columns"`
+
+	ID            int       `pg:"restaurateur_id,pk" json:"restaurateur_id"`
+	Email         string    `pg:"email" json:"email"`
+	Password      string    `pg:"password" json:"password"`
+	EmailVerified bool      `pg:"email_verified,use_zero" json:"email_verified"`
+	RegDateTime   time.Time `pg:"reg_datetime" json:"reg_datetime"`
+}
+
+type RestaurateurRole struct {
+	tableName struct{} `pg:"main.restaurateur_roles,discard_unknown_columns"`
+
+	ID   int    `pg:"restaurateur_role_id,pk" json:"restaurateur_role_id"`
+	Name string `pg:"name" json:"name"`
+}
+
+type PlaceRestaurateur struct {
+	tableName struct{} `pg:"main.places_restaurateurs,discard_unknown_columns"`
+
+	RestaurateurID int `pg:"restaurateur_id,pk" json:"restaurateur_id"`
+	PlaceID        int `pg:"place_id,pk" json:"place_id"`
+	RoleID         int `pg:"restaurateur_role_id" json:"restaurateur_role_id"`
 }

@@ -5,7 +5,7 @@ import (
 	errs "cafe/pkg/db_manager/errors"
 	"errors"
 	wrapErr "github.com/Chekunin/wraperr"
-	"github.com/go-pg/pg/v9"
+	"github.com/go-pg/pg/v10"
 	"reflect"
 	"strings"
 )

@@ -135,3 +135,23 @@ func (u *Usecase) GetPlaceEvaluationCriterions(ctx context.Context) ([]models.Ev
 	}
 	return evaluationCriterion, nil
 }
+
+func (u *Usecase) GetPlacesReviewsOfUserID(ctx context.Context, userID int, lastReviewID int, limit int) ([]models.Review, error) {
+	reviews, err := u.dbManager.GetReviewsByUserID(ctx, userID, lastReviewID, limit)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetReviewsByUserID userID=%d lastReviewID=%d limit=%d", userID, lastReviewID, limit), err)
+		return nil, err
+	}
+
+	return reviews, nil
+}
+
+func (u *Usecase) GetPlaceAdvertsByPlaceID(ctx context.Context, placeID int, lastAdvertID int, limit int) ([]models.Advert, error) {
+	adverts, err := u.dbManager.GetAdvertsByPlaceID(ctx, placeID, lastAdvertID, limit)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetAdvertsByPlaceID placeID=%d lastAdvertID=%d limit=%d", placeID, lastAdvertID, limit), err)
+		return nil, err
+	}
+
+	return adverts, nil
+}

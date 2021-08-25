@@ -77,11 +77,25 @@ VALUES
         (4, 3),
         (5, 4);
 
-INSERT INTO main.adverts(place_id, text, publish_datetime)
+INSERT INTO main.restaurateur_roles(name) VALUES ('admin'), ('moderator');
+
+INSERT INTO main.restaurateurs (email, password, email_verified, reg_datetime)
 VALUES
-        (1, 'АКЦИЯ! Каждый вторник второй бургер бесплатно!', '2021-07-10 04:05:06 +3:00'),
-        (5, '24.07.2021 в 19:00 в нашем баре будет выступать группа "Бременские музыканты"', '2021-07-21 07:00:00 +3:00'),
-        (1, 'Мы открыли летнюю веранду в ресторане на Белорусской!', '2021-07-21 08:50:22 +3:00');
+       ('bob@torro.ru','$2a$10$R/jeXpRiTktW6IdEEgEmsuW3tSA41AJdL4i2agBDlOE.ul9q8Vgam',true,'2021-08-25 11:20:13.362000 +00:00'),
+       ('john@mail.ru','$2a$10$R/jeXpRiTktW6IdEEgEmsuW3tSA41AJdL4i2agBDlOE.ul9q8Vgam',true,'2021-08-25 11:24:46.551000 +00:00');
+
+INSERT INTO main.places_restaurateurs (restaurateur_id, place_id, restaurateur_role_id)
+VALUES
+       (1,1,1),
+       (2,3,1),
+       (2,4,1),
+       (2,5,1);
+
+INSERT INTO main.adverts(place_id, restaurateur_id, text, publish_datetime)
+VALUES
+        (1, 1, 'АКЦИЯ! Каждый вторник второй бургер бесплатно!', '2021-07-10 04:05:06 +3:00'),
+        (5, 2, '24.07.2021 в 19:00 в нашем баре будет выступать группа "Бременские музыканты"', '2021-07-21 07:00:00 +3:00'),
+        (1, 1, 'Мы открыли летнюю веранду в ресторане на Белорусской!', '2021-07-21 08:50:22 +3:00');
 
 INSERT INTO main.users_subscriptions(follower_user_id, followed_user_id)
 VALUES (1,3),

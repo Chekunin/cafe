@@ -78,3 +78,21 @@ func (r *rest) handlerUnsubscribeFromUser(c *gin.Context) {
 
 	c.Status(http.StatusOK)
 }
+
+func (r *rest) handlerGetFeed(c *gin.Context) {
+	userID, has := common.FromContextUserID(c.Request.Context())
+	if !has {
+		err := wrapErr.NewWrapErr(fmt.Errorf("userID is not in context"), nil)
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	err := r.usecase.GetFeedOfUserID(c.Request.Context(), userID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetFeedOfUserID userID=%d", userID), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}

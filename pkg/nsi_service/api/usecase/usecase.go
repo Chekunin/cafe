@@ -78,3 +78,12 @@ func (u *Usecase) GetPlaceEvaluationCriterions(ctx context.Context) ([]models.Ev
 	}
 	return evaluationCriterions, nil
 }
+
+func (u *Usecase) GetReviewsByUserID(ctx context.Context, userID int) ([]models.Review, error) {
+	reviews, err := u.nsi.GetReviewsByUserID(ctx, userID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("nsi GetReviewsByUserID"), err)
+		return nil, err
+	}
+	return reviews, nil
+}

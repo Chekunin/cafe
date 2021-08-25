@@ -9,6 +9,7 @@ import (
 	"fmt"
 	wrapErr "github.com/Chekunin/wraperr"
 	"io"
+	"strconv"
 )
 
 type HttpDbManager struct {
@@ -253,6 +254,25 @@ func (h HttpDbManager) GetAllReviews(ctx context.Context) ([]models.Review, erro
 	return resp, nil
 }
 
+func (h HttpDbManager) GetReviewsByUserID(ctx context.Context, userID int, lastReviewID int, limit int) ([]models.Review, error) {
+	var resp []models.Review
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "GET",
+		Url:    fmt.Sprintf("/reviews-by-user-id/%d", userID),
+		UrlParams: map[string]string{
+			"last_review_id": strconv.Itoa(lastReviewID),
+			"limit":          strconv.Itoa(limit),
+		},
+		Result: &resp,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return nil, err
+	}
+	return resp, nil
+}
+
 func (h HttpDbManager) AddReview(ctx context.Context, review *models.Review) error {
 	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
 		Ctx:     ctx,
@@ -304,6 +324,25 @@ func (h HttpDbManager) GetAllReviewReviewMedias(ctx context.Context) ([]models.R
 		Ctx:    ctx,
 		Method: "GET",
 		Url:    "/review-review-medias",
+		Result: &resp,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (h HttpDbManager) GetAdvertsByPlaceID(ctx context.Context, placeID int, lastAdvertID int, limit int) ([]models.Advert, error) {
+	var resp []models.Advert
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "GET",
+		Url:    fmt.Sprintf("/adverts-by-place-id/%d", placeID),
+		UrlParams: map[string]string{
+			"last_advert_id": strconv.Itoa(lastAdvertID),
+			"limit":          strconv.Itoa(limit),
+		},
 		Result: &resp,
 	})
 	if err != nil {

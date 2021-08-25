@@ -15,11 +15,13 @@ type IDBManager interface {
 	GetAllPlaceSchedules(ctx context.Context) ([]models.PlaceSchedule, error)
 	GetAllAdverts(ctx context.Context) ([]models.Advert, error)
 	GetAllAdvertMedias(ctx context.Context) ([]models.AdvertMedia, error)
+	GetAdvertsByPlaceID(ctx context.Context, placeID int, lastAdvertID int, limit int) ([]models.Advert, error)
 	GetAllEvaluationCriterions(ctx context.Context) ([]models.EvaluationCriterion, error)
 	AddPlaceEvaluationWithMarks(ctx context.Context, placeEvaluation *models.PlaceEvaluation, marks []models.PlaceEvaluationMark) error
 	GetAllPlaceEvaluations(ctx context.Context) ([]models.PlaceEvaluation, error)
 	GetAllPlaceEvaluationMarks(ctx context.Context) ([]models.PlaceEvaluationMark, error)
 	GetAllReviews(ctx context.Context) ([]models.Review, error)
+	GetReviewsByUserID(ctx context.Context, userID int, lastReviewID int, limit int) ([]models.Review, error)
 	AddReview(ctx context.Context, review *models.Review) error
 	GetAllReviewMedias(ctx context.Context) ([]models.ReviewMedia, error)
 	AddReviewMedia(ctx context.Context, reviewMedia *models.ReviewMedia) error

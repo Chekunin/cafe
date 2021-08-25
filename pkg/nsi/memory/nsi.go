@@ -115,3 +115,17 @@ func (n *NSI) GetPlaceEvaluationCriterions(ctx context.Context) ([]models.Evalua
 	copy(res, n.context.evaluationCriterions)
 	return res, nil
 }
+
+func (n *NSI) GetReviewsByUserID(ctx context.Context, userID int) ([]models.Review, error) {
+	v, has := n.context.reviewsByUserID[userID]
+	if !has {
+		return []models.Review{}, nil
+	}
+
+	res := make([]models.Review, 0, len(v))
+	for _, v2 := range v {
+		res = append(res, *v2)
+	}
+
+	return res, nil
+}

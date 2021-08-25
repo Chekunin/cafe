@@ -32,11 +32,13 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	router.GET("/place-schedules", r.handlerGetAllPlaceSchedules)
 	router.GET("/adverts", r.handlerGetAllAdverts)
 	router.GET("/advert-medias", r.handlerGetAllAdvertMedias)
+	router.GET("/adverts-by-place-id/:place_id", r.handlerGetAdvertsByPlaceID)
 	router.GET("/evaluation-criterions", r.handlerGetAllEvaluationCriterions)
 	router.GET("/place-evaluations", r.handlerGetAllPlaceEvaluations)
 	router.POST("/place-evaluation-with-marks", r.handlerAddPlaceEvaluationWithMarks)
 	router.GET("/place-evaluation-marks", r.handlerGetAllPlaceEvaluationMarks)
 	router.GET("/reviews", r.handlerGetAllReviews)
+	router.GET("/reviews-by-user-id/:user_id", r.handlerGetReviewsByUserID)
 	router.POST("/review", r.handlerAddReview)
 	router.POST("/review-media", r.handlerAddReviewMedia)
 	router.GET("/review-medias", r.handlerGetAllReviewMedias)
@@ -147,6 +149,35 @@ func (r *rest) handlerGetAllAdvertMedias(c *gin.Context) {
 	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
 }
 
+func (r *rest) handlerGetAdvertsByPlaceID(c *gin.Context) {
+	var req struct {
+		PlaceID int `uri:"place_id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	var reqQuery struct {
+		LastAdvertID int `form:"last_adver_id"`
+		Limit        int `form:"limit,default=20"`
+	}
+	if err := c.ShouldBindQuery(&reqQuery); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from query"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := r.Usecase.GetAdvertsByPlaceID(c.Request.Context(), req.PlaceID, reqQuery.LastAdvertID, reqQuery.Limit)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetAdvertsByPlaceID"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
 func (r *rest) handlerGetAllEvaluationCriterions(c *gin.Context) {
 	resp, err := r.Usecase.GetAllEvaluationCriterions(c.Request.Context())
 	if err != nil {
@@ -198,6 +229,35 @@ func (r *rest) handlerGetAllReviews(c *gin.Context) {
 	resp, err := r.Usecase.GetAllReviews(c.Request.Context())
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetAllReviews"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerGetReviewsByUserID(c *gin.Context) {
+	var req struct {
+		UserID int `uri:"user_id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	var reqQuery struct {
+		LastReviewID int `form:"last_review_id"`
+		Limit        int `form:"limit,default=20"`
+	}
+	if err := c.ShouldBindQuery(&reqQuery); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from query"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := r.Usecase.GetReviewsByUserID(c.Request.Context(), req.UserID, reqQuery.LastReviewID, reqQuery.Limit)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetReviewsByUserID"), err)
 		c.AbortWithError(GetHttpCode(err), err)
 		return
 	}

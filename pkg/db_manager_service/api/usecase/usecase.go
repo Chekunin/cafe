@@ -97,6 +97,15 @@ func (u *Usecase) GetAllAdvertMedias(ctx context.Context) ([]models.AdvertMedia,
 	return res, nil
 }
 
+func (u *Usecase) GetAdvertsByPlaceID(ctx context.Context, placeID int, lastAdvertID int, limit int) ([]models.Advert, error) {
+	res, err := u.dbManager.GetAdvertsByPlaceID(ctx, placeID, lastAdvertID, limit)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetAdvertsByPlaceID"), err)
+		return nil, err
+	}
+	return res, nil
+}
+
 func (u *Usecase) GetAllEvaluationCriterions(ctx context.Context) ([]models.EvaluationCriterion, error) {
 	res, err := u.dbManager.GetAllEvaluationCriterions(ctx)
 	if err != nil {
@@ -136,6 +145,15 @@ func (u *Usecase) GetAllReviews(ctx context.Context) ([]models.Review, error) {
 	res, err := u.dbManager.GetAllReviews(ctx)
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetAllReviews"), err)
+		return nil, err
+	}
+	return res, nil
+}
+
+func (u *Usecase) GetReviewsByUserID(ctx context.Context, userID int, lastReviewID int, limit int) ([]models.Review, error) {
+	res, err := u.dbManager.GetReviewsByUserID(ctx, userID, lastReviewID, limit)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetReviewsByUserID"), err)
 		return nil, err
 	}
 	return res, nil

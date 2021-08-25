@@ -18,7 +18,7 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/go-pg/pg/v9"
+	"github.com/go-pg/pg/v10"
 	"github.com/go-redis/redis/v8"
 	"net/http"
 	"os"

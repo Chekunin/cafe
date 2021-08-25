@@ -7,9 +7,15 @@ import (
 	"errors"
 	"fmt"
 	wrapErr "github.com/Chekunin/wraperr"
-	"github.com/go-pg/pg/v9"
+	"github.com/go-pg/pg/v10"
+	"github.com/go-pg/pg/v10/orm"
 	"reflect"
 )
+
+func init() {
+	orm.RegisterTable((*models.ReviewReviewMedias)(nil))
+	orm.RegisterTable((*models.AdvertAdvertMedias)(nil))
+}
 
 type DbManager struct {
 	db *pg.DB
@@ -106,6 +112,25 @@ func (d *DbManager) GetAllAdvertMedias(ctx context.Context) ([]models.AdvertMedi
 	return res, nil
 }
 
+func (d *DbManager) GetAdvertsByPlaceID(ctx context.Context, placeID int, lastAdvertID int, limit int) ([]models.Advert, error) {
+	var res []models.Advert
+	query := d.db.Model(&res).Where("place_id = ?", placeID)
+	if lastAdvertID != 0 {
+		query = query.Where("advert_id < ?", lastAdvertID)
+	}
+	query = query.Relation("ReviewMedias", func(q *pg.Query) (*pg.Query, error) {
+		q = q.OrderExpr("advert_advert_medias.order ASC")
+		return q, nil
+	})
+	if err := query.Order("publish_datetime desc").
+		Limit(limit).
+		Select(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("select from db"), err)
+		return nil, err
+	}
+	return res, nil
+}
+
 func (d *DbManager) GetAllEvaluationCriterions(ctx context.Context) ([]models.EvaluationCriterion, error) {
 	var res []models.EvaluationCriterion
 	if err := d.db.Model(&res).Select(); err != nil {
@@ -154,6 +179,25 @@ func (d *DbManager) GetAllPlaceEvaluationMarks(ctx context.Context) ([]models.Pl
 func (d *DbManager) GetAllReviews(ctx context.Context) ([]models.Review, error) {
 	var res []models.Review
 	if err := d.db.Model(&res).Select(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("select from db"), err)
+		return nil, err
+	}
+	return res, nil
+}
+
+func (d *DbManager) GetReviewsByUserID(ctx context.Context, userID int, lastReviewID int, limit int) ([]models.Review, error) {
+	var res []models.Review
+	query := d.db.Model(&res).Where("user_id = ?", userID)
+	if lastReviewID != 0 {
+		query = query.Where("review_id < ?", lastReviewID)
+	}
+	query = query.Relation("ReviewMedias", func(q *pg.Query) (*pg.Query, error) {
+		q = q.OrderExpr("review_review_medias.order ASC")
+		return q, nil
+	})
+	if err := query.Order("publish_datetime desc").
+		Limit(limit).
+		Select(); err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("select from db"), err)
 		return nil, err
 	}

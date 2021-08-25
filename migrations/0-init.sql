@@ -86,9 +86,12 @@ create table main.places_categories (
 create table main.reviews (
                               review_id serial primary key,
                               user_id int references main.users(user_id),
+                              place_id int references main.places(place_id) not null,
                               text text,
                               publish_datetime timestamptz not null default now()
 );
+
+CREATE INDEX idx_reviews_user_id_publish_datetime ON main.reviews(user_id, publish_datetime);
 
 create table main.review_medias (
                                     review_media_id serial primary key,
@@ -119,17 +122,25 @@ create table main.places_kitchen_categories (
 
 create table main.adverts (
                               advert_id serial primary key,
-                              place_id int references main.places(place_id),
+                              place_id int references main.places(place_id) not null,
+                              restaurateur_id int references main.restaurateurs(restaurateur_id) not null,
                               text text,
                               publish_datetime timestamptz not null default now()
 );
 
 create table main.advert_medias (
                                     advert_media_id serial primary key,
-                                    advert_id int references main.adverts(advert_id),
+                                    place_id integer references main.places(place_id) not null,
+                                    restaurateur_id int references main.restaurateurs(restaurateur_id) not null,
                                     media_type main.media_type not null,
-                                    media_path varchar not null,
-                                    "order" int not null
+                                    media_path varchar not null
+);
+
+create table main.advert_advert_medias (
+                                           advert_id int references main.adverts(advert_id),
+                                           advert_media_id int references main.advert_medias(advert_media_id),
+                                           "order" int not null,
+                                           primary key (advert_id, advert_media_id)
 );
 
 create table main.users_subscriptions (
@@ -147,5 +158,25 @@ create table main.user_phone_codes (
                                        left_attempts integer not null default 0
 );
 CREATE UNIQUE INDEX ON main.user_phone_codes (user_id, actual) WHERE (actual is true);
+
+create table main.restaurateurs (
+                                    restaurateur_id serial primary key,
+                                    email varchar(255) unique,
+                                    password varchar(255),
+                                    email_verified bool not null default false,
+                                    reg_datetime timestamptz not null default now()
+);
+
+create table main.restaurateur_roles (
+                                         restaurateur_role_id serial primary key,
+                                         name varchar(255) unique
+);
+
+create table main.places_restaurateurs (
+                                           restaurateur_id integer references main.restaurateurs(restaurateur_id),
+                                           place_id integer references main.places(place_id),
+                                           restaurateur_role_id integer references main.restaurateur_roles(restaurateur_role_id),
+                                           primary key (restaurateur_id, place_id)
+);
 
 -- +migrate Down

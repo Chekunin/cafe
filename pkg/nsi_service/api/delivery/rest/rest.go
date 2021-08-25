@@ -27,6 +27,7 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	router.GET("/place-evaluation-marks-by-place-evaluation-id/:place_evaluation_id", r.handlerGetPlaceEvaluationMarksByPlaceEvaluationID)
 	router.GET("/review-media-by-id/:id", r.handlerGetReviewMediaByID)
 	router.GET("/evaluation-criterions", r.handlerGetPlaceEvaluationCriterions)
+	router.GET("/reviews-by-user-id/:user_id", r.handlerGetReviewsByUserID)
 }
 
 func (r *rest) handlerGetPlaceByID(c *gin.Context) {
@@ -146,6 +147,24 @@ func (r *rest) handlerGetPlaceEvaluationCriterions(c *gin.Context) {
 	resp, err := r.Usecase.GetPlaceEvaluationCriterions(c.Request.Context())
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetPlaceEvaluationCriterions"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerGetReviewsByUserID(c *gin.Context) {
+	var req struct {
+		UserID int `uri:"user_id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	resp, err := r.Usecase.GetReviewsByUserID(c.Request.Context(), req.UserID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetReviewsByUserID userID=%d", req.UserID), err)
 		c.AbortWithError(GetHttpCode(err), err)
 		return
 	}

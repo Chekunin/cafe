@@ -13,4 +13,5 @@ type INSI interface {
 	GetPlaceEvaluationMarksByPlaceEvaluationID(ctx context.Context, placeEvaluationID int) ([]models.PlaceEvaluationMark, error)
 	GetReviewMediaByID(ctx context.Context, reviewMediaID int) (models.ReviewMedia, error)
 	GetPlaceEvaluationCriterions(ctx context.Context) ([]models.EvaluationCriterion, error)
+	GetReviewsByUserID(ctx context.Context, userID int) ([]models.Review, error)
 }

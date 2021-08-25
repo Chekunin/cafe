@@ -48,3 +48,7 @@ func (u *Usecase) GetUserSubscriptionsByFollowerID(ctx context.Context, follower
 
 	return userSubscriptions, nil
 }
+
+func (u *Usecase) GetFeedOfUserID(ctx context.Context, userID int) error {
+	panic("implement me")
+}

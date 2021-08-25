@@ -153,3 +153,19 @@ func (n HttpNSI) GetPlaceEvaluationCriterions(ctx context.Context) ([]models.Eva
 
 	return resp, nil
 }
+
+func (n HttpNSI) GetReviewsByUserID(ctx context.Context, userID int) ([]models.Review, error) {
+	var resp []models.Review
+	_, err := n.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "GET",
+		Url:    fmt.Sprintf("/reviews-by-user-id/%d", userID),
+		Result: &resp,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return resp, err
+	}
+
+	return resp, nil
+}
