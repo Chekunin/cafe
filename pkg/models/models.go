@@ -235,3 +235,38 @@ type PlaceRestaurateur struct {
 	PlaceID        int `pg:"place_id,pk" json:"place_id"`
 	RoleID         int `pg:"restaurateur_role_id" json:"restaurateur_role_id"`
 }
+
+type UserFeed struct {
+	tableName struct{} `pg:"main.users_feeds,discard_unknown_columns"`
+
+	ID              int       `pg:"users_feed_id,pk" json:"restaurateur_id" api:"restaurateur_id"`
+	UserID          int       `pg:"user_id" json:"user_id" api:"user_id"`
+	AdvertID        int       `pg:"advert_id" json:"advert_id" api:"advert_id"`
+	ReviewID        int       `pg:"review_id" json:"review_id" api:"review_id"`
+	PublishDatetime time.Time `pg:"publish_datetime" json:"publish_datetime" api:"publish_datetime"`
+
+	Advert *Advert `pg:"fk:advert_id" api:"advert"`
+	Review *Review `pg:"fk:review_id" api:"review"`
+}
+
+type FeedAdvertQueue struct {
+	tableName struct{} `pg:"main.feed_advert_queue,discard_unknown_columns"`
+
+	AdvertID int `pg:"advert_id,pk" json:"advert_id"`
+	Status   int `pg:"status" json:"status"`
+}
+
+type FeedReviewQueue struct {
+	tableName struct{} `pg:"main.feed_review_queue,discard_unknown_columns"`
+
+	ReviewID int `pg:"review_id,pk" json:"review_id"`
+	Status   int `pg:"status" json:"status"`
+}
+
+type FeedUserSubscribeQueue struct {
+	tableName struct{} `pg:"main.feed_user_subscribe_queue,discard_unknown_columns"`
+
+	FollowerUserID int `pg:"follower_user_id,pk" json:"follower_user_id"`
+	FollowedUserID int `pg:"followed_user_id,pk" json:"followed_user_id"`
+	Status         int `pg:"status" json:"status"`
+}

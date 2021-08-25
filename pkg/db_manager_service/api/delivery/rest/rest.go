@@ -57,6 +57,19 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	router.POST("/user-phone-code", r.handlerCreateUserPhoneCode)
 	router.POST("/user-phone-code/:id", r.handlerUpdateUserPhoneCode)
 	router.POST("/activate-user-phone", r.handlerActivateUserPhone)
+	router.GET("/feed-by-user-id/:user_id", r.handlerGetFeedOfUserID)
+
+	router.POST("/add-feed-advert-queue", r.handlerAddFeedAdvertQueue)
+	router.POST("/poll-feed-advert-queue", r.handlerPollFeedAdvertQueue)
+	router.POST("/complete-feed-advert-queue/:advert_id", r.handlerCompleteFeedAdvertQueue)
+
+	router.POST("/add-feed-review-queue", r.handlerAddFeedReviewQueue)
+	router.POST("/poll-feed-review-queue", r.handlerPollFeedReviewQueue)
+	router.POST("/complete-feed-review-queue/:advert_id", r.handlerCompleteFeedReviewQueue)
+
+	router.POST("/add-feed-user-subscribe-queue", r.handlerAddFeedUserSubscribeQueue)
+	router.POST("/poll-feed-user-subscribe-queue", r.handlerPollFeedUserSubscribeQueue)
+	router.POST("/complete-feed-user-subscribe-queue/:follower_user_id/:followed_user_id", r.handlerCompleteFeedUserSubscribeQueue)
 }
 
 func (r *rest) handlerGetAllPlaces(c *gin.Context) {
@@ -571,6 +584,177 @@ func (r *rest) handlerActivateUserPhone(c *gin.Context) {
 	}
 	if err := r.Usecase.ActivateUserPhone(c.Request.Context(), req.UserPhoneCodeID); err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("usecase ActivateUserPhone"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Status(http.StatusOK)
+}
+
+func (r *rest) handlerGetFeedOfUserID(c *gin.Context) {
+	var req struct {
+		UserID int `uri:"user_id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	var reqQuery struct {
+		LastUserFeedID int `form:"last_user_feed_id"`
+		Limit          int `form:"limit,default=8"`
+	}
+	if err := c.ShouldBindQuery(&reqQuery); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from query"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := r.Usecase.GetFeedOfUserID(c.Request.Context(), req.UserID, reqQuery.LastUserFeedID, reqQuery.Limit)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetFeedOfUserID"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerAddFeedAdvertQueue(c *gin.Context) {
+	var req models.FeedAdvertQueue
+	dec := gob.NewDecoder(c.Request.Body)
+	if err := dec.Decode(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("decode data"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := r.Usecase.AddFeedAdvertQueue(c.Request.Context(), req)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase AddFeedAdvertQueue"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerPollFeedAdvertQueue(c *gin.Context) {
+	resp, err := r.Usecase.PollFeedAdvertQueue(c.Request.Context())
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase PollFeedAdvertQueue"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerCompleteFeedAdvertQueue(c *gin.Context) {
+	var req struct {
+		AdvertID int `uri:"advert_id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	err := r.Usecase.CompleteFeedAdvertQueue(c.Request.Context(), req.AdvertID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase CompleteFeedAdvertQueue advertID=%d", req.AdvertID), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Status(http.StatusOK)
+}
+
+func (r *rest) handlerAddFeedReviewQueue(c *gin.Context) {
+	var req models.FeedReviewQueue
+	dec := gob.NewDecoder(c.Request.Body)
+	if err := dec.Decode(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("decode data"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := r.Usecase.AddFeedReviewQueue(c.Request.Context(), req)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase AddFeedReviewQueue"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerPollFeedReviewQueue(c *gin.Context) {
+	resp, err := r.Usecase.PollFeedReviewQueue(c.Request.Context())
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase PollFeedReviewQueue"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerCompleteFeedReviewQueue(c *gin.Context) {
+	var req struct {
+		ReviewID int `uri:"review_id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	err := r.Usecase.CompleteFeedReviewQueue(c.Request.Context(), req.ReviewID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase CompleteFeedReviewQueue reviewID=%d", req.ReviewID), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Status(http.StatusOK)
+}
+
+func (r *rest) handlerAddFeedUserSubscribeQueue(c *gin.Context) {
+	var req models.FeedUserSubscribeQueue
+	dec := gob.NewDecoder(c.Request.Body)
+	if err := dec.Decode(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("decode data"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := r.Usecase.AddFeedUserSubscribeQueue(c.Request.Context(), req)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase AddFeedUserSubscribeQueue"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerPollFeedUserSubscribeQueue(c *gin.Context) {
+	resp, err := r.Usecase.PollFeedUserSubscribeQueue(c.Request.Context())
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase PollFeedUserSubscribeQueue"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerCompleteFeedUserSubscribeQueue(c *gin.Context) {
+	var req struct {
+		FollowerUserID int `uri:"follower_user_id" binding:"required"`
+		FollowedUserID int `uri:"followed_user_id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	err := r.Usecase.CompleteFeedUserSubscribeQueue(c.Request.Context(), req.FollowerUserID, req.FollowedUserID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase CompleteFeedUserSubscribeQueue followerUserID=%d followedUserID=%d", req.FollowerUserID, req.FollowedUserID), err)
 		c.AbortWithError(GetHttpCode(err), err)
 		return
 	}

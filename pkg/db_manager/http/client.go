@@ -560,3 +560,151 @@ func (h HttpDbManager) ActivateUserPhone(ctx context.Context, userPhoneCodeID in
 	}
 	return nil
 }
+
+func (h HttpDbManager) GetFeedOfUserID(ctx context.Context, userID int, lastUserFeedID int, limit int) ([]models.UserFeed, error) {
+	var resp []models.UserFeed
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "GET",
+		Url:    fmt.Sprintf("/feed-by-user-id/%d", userID),
+		UrlParams: map[string]string{
+			"last_user_feed_id": strconv.Itoa(lastUserFeedID),
+			"limit":             strconv.Itoa(limit),
+		},
+		Result: &resp,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (h HttpDbManager) AddFeedAdvertQueue(ctx context.Context, feedAdvertQueue *models.FeedAdvertQueue) error {
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:     ctx,
+		Method:  "POST",
+		Url:     "/add-feed-advert-queue",
+		Payload: *feedAdvertQueue,
+		Result:  feedAdvertQueue,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return err
+	}
+	return nil
+}
+
+func (h HttpDbManager) PollFeedAdvertQueue(ctx context.Context) (models.FeedAdvertQueue, error) {
+	var resp models.FeedAdvertQueue
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "POST",
+		Url:    "/poll-feed-advert-queue",
+		Result: &resp,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return models.FeedAdvertQueue{}, err
+	}
+	return resp, nil
+}
+
+func (h HttpDbManager) CompleteFeedAdvertQueue(ctx context.Context, advertID int) error {
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "POST",
+		Url:    fmt.Sprintf("/complete-feed-advert-queue/%d", advertID),
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return err
+	}
+	return nil
+}
+
+func (h HttpDbManager) AddFeedReviewQueue(ctx context.Context, feedReviewQueue *models.FeedReviewQueue) error {
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:     ctx,
+		Method:  "POST",
+		Url:     "/add-feed-review-queue",
+		Payload: *feedReviewQueue,
+		Result:  feedReviewQueue,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return err
+	}
+	return nil
+}
+
+func (h HttpDbManager) PollFeedReviewQueue(ctx context.Context) (models.FeedReviewQueue, error) {
+	var resp models.FeedReviewQueue
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "POST",
+		Url:    "/poll-feed-review-queue",
+		Result: &resp,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return models.FeedReviewQueue{}, err
+	}
+	return resp, nil
+}
+
+func (h HttpDbManager) CompleteFeedReviewQueue(ctx context.Context, reviewID int) error {
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "POST",
+		Url:    fmt.Sprintf("/complete-feed-review-queue/%d", reviewID),
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return err
+	}
+	return nil
+}
+
+func (h HttpDbManager) AddFeedUserSubscribeQueue(ctx context.Context, feedUserSubscribeQueue *models.FeedUserSubscribeQueue) error {
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:     ctx,
+		Method:  "POST",
+		Url:     "/add-feed-user-subscribe-queue",
+		Payload: *feedUserSubscribeQueue,
+		Result:  feedUserSubscribeQueue,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return err
+	}
+	return nil
+}
+
+func (h HttpDbManager) PollFeedUserSubscribeQueue(ctx context.Context) (models.FeedUserSubscribeQueue, error) {
+	var resp models.FeedUserSubscribeQueue
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "POST",
+		Url:    "/poll-feed-user-subscribe-queue",
+		Result: &resp,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return models.FeedUserSubscribeQueue{}, err
+	}
+	return resp, nil
+}
+
+func (h HttpDbManager) CompleteFeedUserSubscribeQueue(ctx context.Context, followerUserID int, followedUserID int) error {
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "POST",
+		Url:    fmt.Sprintf("/complete-feed-user-subscribe-queue/%d/%d", followerUserID, followedUserID),
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return err
+	}
+	return nil
+}

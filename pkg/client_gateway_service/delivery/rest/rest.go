@@ -63,7 +63,7 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	// запрос на получение своих собственных записей
 	authorized.GET("/places/reviews", r.handlerGetOwnPlacesReviews)
 	// запрос на получение своей ленты (главной страницы с чужими записями)
-	authorized.GET("/feed", r.handlerGetFeed)
+	authorized.GET("/feed", r.handlerGetUserFeed)
 }
 
 func (r *rest) handlerGetPlaces(c *gin.Context) {

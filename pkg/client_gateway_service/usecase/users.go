@@ -49,6 +49,12 @@ func (u *Usecase) GetUserSubscriptionsByFollowerID(ctx context.Context, follower
 	return userSubscriptions, nil
 }
 
-func (u *Usecase) GetFeedOfUserID(ctx context.Context, userID int) error {
-	panic("implement me")
+func (u *Usecase) GetFeedOfUserID(ctx context.Context, userID int, lastUserFeedID int, limit int) ([]models.UserFeed, error) {
+	feed, err := u.dbManager.GetFeedOfUserID(ctx, userID, lastUserFeedID, limit)
+	if err != nil {
+		err = wraperr.NewWrapErr(fmt.Errorf("dbManager GetFeedOfUserID userID=%d lastUserFeedID=%d limit=%d", userID, lastUserFeedID, limit), err)
+		return nil, err
+	}
+
+	return feed, nil
 }

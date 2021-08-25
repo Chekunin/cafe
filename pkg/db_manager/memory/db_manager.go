@@ -143,7 +143,7 @@ func (d *DbManager) GetAllEvaluationCriterions(ctx context.Context) ([]models.Ev
 func (d *DbManager) AddPlaceEvaluationWithMarks(ctx context.Context, placeEvaluation *models.PlaceEvaluation, marks []models.PlaceEvaluationMark) error {
 	// todo: это выполнять в транзакции
 	if _, err := d.db.Model(placeEvaluation).Returning("*").Insert(); err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("insert placeEvaluation=%+v into db", placeEvaluation), err)
+		err = wrapErr.NewWrapErr(fmt.Errorf("insert placeEvaluation=%+v into db", *placeEvaluation), err)
 		return err
 	}
 
@@ -383,6 +383,143 @@ func (d *DbManager) ActivateUserPhone(ctx context.Context, userPhoneCodeID int) 
 	if _, err := d.db.Model(&user).WherePK().Set("phone_verified = true").Update(); err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("set phone_verified to true userID = %d in db", userPhoneCode.UserID), err)
 		err = handleSqlError(err, reflect.TypeOf(user))
+		return err
+	}
+	return nil
+}
+
+func (d *DbManager) GetFeedOfUserID(ctx context.Context, userID int, lastUserFeedID int, limit int) ([]models.UserFeed, error) {
+	var res []models.UserFeed
+	query := d.db.Model(&res).Where("user_id = ?", userID)
+	if lastUserFeedID != 0 {
+		query = query.Where("users_feed_id < ?", lastUserFeedID)
+	}
+	query = query.OrderExpr("publish_datetime DESC").
+		Limit(limit)
+	query = query.Relation("Advert")
+	query = query.Relation("Review")
+	if err := query.Select(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("select from db"), err)
+		return nil, err
+	}
+	return res, nil
+}
+
+func (d *DbManager) AddFeedAdvertQueue(ctx context.Context, feedAdvertQueue *models.FeedAdvertQueue) error {
+	if _, err := d.db.Model(feedAdvertQueue).OnConflict("(advert_id) do nothing").Insert(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("insert feedAdvertQueue=%+v into db", *feedAdvertQueue), err)
+		return err
+	}
+	return nil
+}
+
+func (d *DbManager) PollFeedAdvertQueue(ctx context.Context) (models.FeedAdvertQueue, error) {
+	var feedAdvertQueue models.FeedAdvertQueue
+	if _, err := d.db.Query(&feedAdvertQueue, `
+		with next_task as (
+			select advert_id from main.feed_advert_queue
+			where status = 0
+			limit 1
+				for update skip locked
+		)
+		update main.feed_advert_queue
+		set
+			status = 1
+		from next_task
+		where main.feed_advert_queue.advert_id = next_task.advert_id
+		returning main.feed_advert_queue.advert_id;
+	`); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("query to db"), err)
+		return models.FeedAdvertQueue{}, err
+	}
+	return feedAdvertQueue, nil
+}
+
+func (d *DbManager) CompleteFeedAdvertQueue(ctx context.Context, advertID int) error {
+	feedAdvertQueue := models.FeedAdvertQueue{AdvertID: advertID}
+	if _, err := d.db.Model(&feedAdvertQueue).WherePK().Set("status = ?", 2).Update(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("set status to 2 feedAdvertQueue = %+v in db", feedAdvertQueue), err)
+		err = handleSqlError(err, reflect.TypeOf(feedAdvertQueue))
+		return err
+	}
+	return nil
+}
+
+func (d *DbManager) AddFeedReviewQueue(ctx context.Context, feedReviewQueue *models.FeedReviewQueue) error {
+	if _, err := d.db.Model(feedReviewQueue).OnConflict("(review_id) do nothing").Insert(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("insert feedReviewQueue=%+v into db", *feedReviewQueue), err)
+		return err
+	}
+	return nil
+}
+
+func (d *DbManager) PollFeedReviewQueue(ctx context.Context) (models.FeedReviewQueue, error) {
+	var feedReviewQueue models.FeedReviewQueue
+	if _, err := d.db.Query(&feedReviewQueue, `
+		with next_task as (
+			select review_id from main.feed_review_queue
+			where status = 0
+			limit 1
+				for update skip locked
+		)
+		update main.feed_review_queue
+		set
+			status = 1
+		from next_task
+		where main.feed_review_queue.review_id = next_task.review_id
+		returning main.feed_review_queue.review_id;
+	`); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("query to db"), err)
+		return models.FeedReviewQueue{}, err
+	}
+	return feedReviewQueue, nil
+}
+
+func (d *DbManager) CompleteFeedReviewQueue(ctx context.Context, reviewID int) error {
+	feedReviewQueue := models.FeedReviewQueue{ReviewID: reviewID}
+	if _, err := d.db.Model(&feedReviewQueue).WherePK().Set("status = ?", 2).Update(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("set status to 2 feedReviewQueue = %+v in db", feedReviewQueue), err)
+		err = handleSqlError(err, reflect.TypeOf(feedReviewQueue))
+		return err
+	}
+	return nil
+}
+
+func (d *DbManager) AddFeedUserSubscribeQueue(ctx context.Context, feedUserSubscribeQueue *models.FeedUserSubscribeQueue) error {
+	if _, err := d.db.Model(feedUserSubscribeQueue).OnConflict("(follower_user_id, followed_user_id) do nothing").Insert(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("insert feedUserSubscribeQueue=%+v into db", *feedUserSubscribeQueue), err)
+		return err
+	}
+	return nil
+}
+
+func (d *DbManager) PollFeedUserSubscribeQueue(ctx context.Context) (models.FeedUserSubscribeQueue, error) {
+	var feedUserSubscribeQueue models.FeedUserSubscribeQueue
+	if _, err := d.db.Query(&feedUserSubscribeQueue, `
+		with next_task as (
+			select follower_user_id, followed_user_id from main.feed_user_subscribe_queue
+			where status = 0
+			limit 1
+				for update skip locked
+		)
+		update main.feed_user_subscribe_queue
+		set
+			status = 1
+		from next_task
+		where feed_user_subscribe_queue.follower_user_id = next_task.follower_user_id and feed_user_subscribe_queue.followed_user_id = next_task.followed_user_id
+		returning feed_user_subscribe_queue.follower_user_id, feed_user_subscribe_queue.followed_user_id;
+	`); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("query to db"), err)
+		return models.FeedUserSubscribeQueue{}, err
+	}
+	return feedUserSubscribeQueue, nil
+}
+
+func (d *DbManager) CompleteFeedUserSubscribeQueue(ctx context.Context, followerUserID int, followedUserID int) error {
+	feedUserSubscribeQueue := models.FeedUserSubscribeQueue{FollowerUserID: followerUserID, FollowedUserID: followedUserID}
+	if _, err := d.db.Model(&feedUserSubscribeQueue).WherePK().Set("status = ?", 2).Update(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("set status to 2 feedUserSubscribeQueue = %+v in db", feedUserSubscribeQueue), err)
+		err = handleSqlError(err, reflect.TypeOf(feedUserSubscribeQueue))
 		return err
 	}
 	return nil

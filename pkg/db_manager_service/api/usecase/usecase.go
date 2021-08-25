@@ -313,3 +313,90 @@ func (u *Usecase) ActivateUserPhone(ctx context.Context, userPhoneCodeID int) er
 	}
 	return nil
 }
+
+func (u *Usecase) GetFeedOfUserID(ctx context.Context, userID int, lastUserFeedID int, limit int) ([]models.UserFeed, error) {
+	res, err := u.dbManager.GetFeedOfUserID(ctx, userID, lastUserFeedID, limit)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetFeedOfUserID"), err)
+		return nil, err
+	}
+	return res, nil
+}
+
+func (u *Usecase) AddFeedAdvertQueue(ctx context.Context, feedAdvertQueue models.FeedAdvertQueue) (models.FeedAdvertQueue, error) {
+	err := u.dbManager.AddFeedAdvertQueue(ctx, &feedAdvertQueue)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager feedAdvertQueue"), err)
+		return models.FeedAdvertQueue{}, err
+	}
+	return feedAdvertQueue, nil
+}
+
+func (u *Usecase) PollFeedAdvertQueue(ctx context.Context) (models.FeedAdvertQueue, error) {
+	feedAdvertQueue, err := u.dbManager.PollFeedAdvertQueue(ctx)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager PollFeedAdvertQueue"), err)
+		return models.FeedAdvertQueue{}, err
+	}
+	return feedAdvertQueue, nil
+}
+
+func (u *Usecase) CompleteFeedAdvertQueue(ctx context.Context, advertID int) error {
+	if err := u.dbManager.CompleteFeedAdvertQueue(ctx, advertID); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager CompleteFeedAdvertQueue"), err)
+		return err
+	}
+	return nil
+}
+
+func (u *Usecase) AddFeedReviewQueue(ctx context.Context, feedReviewQueue models.FeedReviewQueue) (models.FeedReviewQueue, error) {
+	err := u.dbManager.AddFeedReviewQueue(ctx, &feedReviewQueue)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager AddFeedReviewQueue"), err)
+		return models.FeedReviewQueue{}, err
+	}
+	return feedReviewQueue, nil
+}
+
+func (u *Usecase) PollFeedReviewQueue(ctx context.Context) (models.FeedReviewQueue, error) {
+	feedReviewQueue, err := u.dbManager.PollFeedReviewQueue(ctx)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager PollFeedReviewQueue"), err)
+		return models.FeedReviewQueue{}, err
+	}
+	return feedReviewQueue, nil
+}
+
+func (u *Usecase) CompleteFeedReviewQueue(ctx context.Context, reviewID int) error {
+	if err := u.dbManager.CompleteFeedReviewQueue(ctx, reviewID); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager CompleteFeedReviewQueue"), err)
+		return err
+	}
+	return nil
+}
+
+func (u *Usecase) AddFeedUserSubscribeQueue(ctx context.Context, feedUserSubscribeQueue models.FeedUserSubscribeQueue) (models.FeedUserSubscribeQueue, error) {
+	err := u.dbManager.AddFeedUserSubscribeQueue(ctx, &feedUserSubscribeQueue)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager AddFeedReviewQueue"), err)
+		return models.FeedUserSubscribeQueue{}, err
+	}
+	return feedUserSubscribeQueue, nil
+}
+
+func (u *Usecase) PollFeedUserSubscribeQueue(ctx context.Context) (models.FeedUserSubscribeQueue, error) {
+	feedUserSubscribeQueue, err := u.dbManager.PollFeedUserSubscribeQueue(ctx)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager PollFeedUserSubscribeQueue"), err)
+		return models.FeedUserSubscribeQueue{}, err
+	}
+	return feedUserSubscribeQueue, nil
+}
+
+func (u *Usecase) CompleteFeedUserSubscribeQueue(ctx context.Context, followerUserID int, followedUserID int) error {
+	if err := u.dbManager.CompleteFeedUserSubscribeQueue(ctx, followerUserID, followedUserID); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager CompleteFeedUserSubscribeQueue"), err)
+		return err
+	}
+	return nil
+}

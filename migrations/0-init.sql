@@ -179,4 +179,34 @@ create table main.places_restaurateurs (
                                            primary key (restaurateur_id, place_id)
 );
 
+create table main.users_feeds (
+                                  users_feed_id serial primary key,
+                                  user_id integer references main.users(user_id),
+                                  advert_id integer references main.adverts(advert_id),
+                                  review_id integer references main.reviews(review_id),
+                                  publish_datetime timestamptz not null
+);
+
+CREATE INDEX ON main.users_feeds (user_id, publish_datetime DESC);
+CREATE UNIQUE INDEX ON main.users_feeds (user_id, advert_id, review_id);
+
+create table main.feed_advert_queue (
+                                        advert_id integer primary key references main.adverts(advert_id),
+                                        status integer not null default 0
+);
+CREATE INDEX ON main.feed_advert_queue (status);
+
+create table main.feed_review_queue (
+                                        review_id integer primary key references main.reviews(review_id),
+                                        status integer not null default 0
+);
+CREATE INDEX ON main.feed_review_queue (status);
+
+create table main.feed_user_subscribe_queue (
+                                                follower_user_id integer not null references main.users(user_id),
+                                                followed_user_id integer not null references main.users(user_id),
+                                                status integer not null default 0,
+                                                primary key (follower_user_id, followed_user_id)
+);
+CREATE INDEX ON main.feed_user_subscribe_queue (status);
 -- +migrate Down

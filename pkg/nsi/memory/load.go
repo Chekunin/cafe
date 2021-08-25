@@ -249,14 +249,8 @@ func (n *NSI) loadAdvertMedias(ctx context.Context) error {
 
 	n.context.advertMedias = advertMedias
 	n.context.advertMediasByID = map[int]*models.AdvertMedia{}
-	n.context.advertMediasByAdvertID = map[int][]*models.AdvertMedia{}
 	for i, v := range n.context.advertMedias {
 		n.context.advertMediasByID[v.ID] = &n.context.advertMedias[i]
-
-		if _, has := n.context.advertMediasByAdvertID[v.AdvertID]; !has {
-			n.context.advertMediasByAdvertID[v.AdvertID] = make([]*models.AdvertMedia, 0)
-		}
-		n.context.advertMediasByAdvertID[v.AdvertID] = append(n.context.advertMediasByAdvertID[v.AdvertID], &n.context.advertMedias[i])
 	}
 
 	return nil

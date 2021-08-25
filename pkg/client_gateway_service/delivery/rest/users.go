@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"cafe/pkg/client_sso/models"
 	"cafe/pkg/common"
 	"fmt"
 	wrapErr "github.com/Chekunin/wraperr"
@@ -79,7 +80,17 @@ func (r *rest) handlerUnsubscribeFromUser(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-func (r *rest) handlerGetFeed(c *gin.Context) {
+func (r *rest) handlerGetUserFeed(c *gin.Context) {
+	var reqQuery struct {
+		LastAdvertID int `form:"last_advert_id"`
+		Limit        int `form:"limit,default=7" binding:"gte=0,lte=12"`
+	}
+	if err := c.ShouldBindQuery(&reqQuery); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from query"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
 	userID, has := common.FromContextUserID(c.Request.Context())
 	if !has {
 		err := wrapErr.NewWrapErr(fmt.Errorf("userID is not in context"), nil)
@@ -87,12 +98,12 @@ func (r *rest) handlerGetFeed(c *gin.Context) {
 		return
 	}
 
-	err := r.usecase.GetFeedOfUserID(c.Request.Context(), userID)
+	resp, err := r.usecase.GetFeedOfUserID(c.Request.Context(), userID, reqQuery.LastAdvertID, reqQuery.Limit)
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetFeedOfUserID userID=%d", userID), err)
 		c.AbortWithError(GetHttpCode(err), err)
 		return
 	}
 
-	c.Status(http.StatusOK)
+	c.JSON(http.StatusOK, models.Convert(resp, modelTag))
 }

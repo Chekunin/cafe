@@ -40,4 +40,17 @@ type IDBManager interface {
 	CreateUserPhoneCode(ctx context.Context, userPhoneCode *models.UserPhoneCode) error
 	UpdateUserPhoneCode(ctx context.Context, userPhoneCode *models.UserPhoneCode) error
 	ActivateUserPhone(ctx context.Context, userPhoneCodeID int) error
+	GetFeedOfUserID(ctx context.Context, userID int, lastUserFeedID int, limit int) ([]models.UserFeed, error)
+
+	AddFeedAdvertQueue(ctx context.Context, feedAdvertQueue *models.FeedAdvertQueue) error
+	PollFeedAdvertQueue(ctx context.Context) (models.FeedAdvertQueue, error)
+	CompleteFeedAdvertQueue(ctx context.Context, advertID int) error
+
+	AddFeedReviewQueue(ctx context.Context, feedReviewQueue *models.FeedReviewQueue) error
+	PollFeedReviewQueue(ctx context.Context) (models.FeedReviewQueue, error)
+	CompleteFeedReviewQueue(ctx context.Context, reviewID int) error
+
+	AddFeedUserSubscribeQueue(ctx context.Context, feedUserSubscribeQueue *models.FeedUserSubscribeQueue) error
+	PollFeedUserSubscribeQueue(ctx context.Context) (models.FeedUserSubscribeQueue, error)
+	CompleteFeedUserSubscribeQueue(ctx context.Context, followerUserID int, followedUserID int) error
 }

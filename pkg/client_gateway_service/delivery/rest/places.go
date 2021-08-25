@@ -288,8 +288,8 @@ func (r *rest) handlerGetPlaceAdvertsByPlaceID(c *gin.Context) {
 	}
 
 	var reqQuery struct {
-		LastAdvertID int `form:"last_advert_id"`
-		Limit        int `form:"limit,default=20" binding:"gte=0,lte=50"`
+		LastUserFeedID int `form:"last_user_feed_id"`
+		Limit          int `form:"limit,default=20" binding:"gte=0,lte=50"`
 	}
 	if err := c.ShouldBindQuery(&reqQuery); err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from query"), err)
@@ -297,7 +297,7 @@ func (r *rest) handlerGetPlaceAdvertsByPlaceID(c *gin.Context) {
 		return
 	}
 
-	resp, err := r.usecase.GetPlaceAdvertsByPlaceID(c.Request.Context(), reqUri.PlaceID, reqQuery.LastAdvertID, reqQuery.Limit)
+	resp, err := r.usecase.GetPlaceAdvertsByPlaceID(c.Request.Context(), reqUri.PlaceID, reqQuery.LastUserFeedID, reqQuery.Limit)
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetPlaceAdvertsByPlaceID placeID=%d", reqUri.PlaceID), err)
 		c.AbortWithError(GetHttpCode(err), err)

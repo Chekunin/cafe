@@ -33,9 +33,8 @@ type NsiContext struct {
 	advertsByID      map[int]*models.Advert
 	advertsByPlaceID map[int][]*models.Advert
 
-	advertMedias           []models.AdvertMedia
-	advertMediasByID       map[int]*models.AdvertMedia
-	advertMediasByAdvertID map[int][]*models.AdvertMedia
+	advertMedias     []models.AdvertMedia
+	advertMediasByID map[int]*models.AdvertMedia
 
 	evaluationCriterions     []models.EvaluationCriterion
 	evaluationCriterionsByID map[int]*models.EvaluationCriterion
