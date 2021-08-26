@@ -155,3 +155,45 @@ func (u *Usecase) GetPlaceAdvertsByPlaceID(ctx context.Context, placeID int, las
 
 	return adverts, nil
 }
+
+func (u *Usecase) SubscribeToPlace(ctx context.Context, userID int, placeID int) error {
+	userPlaceSubscription := models.UserPlaceSubscription{
+		UserID:  userID,
+		PlaceID: placeID,
+	}
+
+	if err := u.dbManager.AddPlaceSubscription(ctx, &userPlaceSubscription); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager AddPlaceSubscription userPlaceSubscription = %+v", userPlaceSubscription), err)
+		// todo: если уже подписка такая есть, то обрабатывать подписку
+		return err
+	}
+
+	// todo: здесь надо сообщать всем остальным (например, nsi), что произошло изменение состояние,
+	//  можно сообщать через шину nats.
+
+	return nil
+}
+
+func (u *Usecase) UnsubscribeFromPlace(ctx context.Context, userID int, placeID int) error {
+	userPlaceSubscription := models.UserPlaceSubscription{
+		UserID:  userID,
+		PlaceID: placeID,
+	}
+
+	if err := u.dbManager.DeletePlaceSubscription(ctx, userPlaceSubscription); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager DeletePlaceSubscription userPlaceSubscription = %+v", userPlaceSubscription), err)
+		return err
+	}
+
+	return nil
+}
+
+func (u *Usecase) GetPlaceSubscriptionsByUserID(ctx context.Context, userID int) ([]models.UserPlaceSubscription, error) {
+	userSubscriptions, err := u.dbManager.GetUsersPlacesSubscriptionsByUserID(ctx, userID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetUsersPlacesSubscriptionsByUserID userID=%d", userID), err)
+		return nil, err
+	}
+
+	return userSubscriptions, nil
+}

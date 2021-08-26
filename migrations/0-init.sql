@@ -213,7 +213,7 @@ create table main.feed_user_subscribe_queue (
 );
 CREATE INDEX ON main.feed_user_subscribe_queue (status);
 
-create table main.users_places (
+create table main.users_places_subscriptions (
                                    user_id int references main.users(user_id),
                                    place_id int references main.places(place_id),
                                    primary key (user_id, place_id)

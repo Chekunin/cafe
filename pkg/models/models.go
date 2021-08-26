@@ -274,8 +274,8 @@ type FeedUserSubscribeQueue struct {
 	ChangeStatusDatetime time.Time `pg:"change_status_datetime" json:"change_status_datetime"`
 }
 
-type UserPlace struct {
-	tableName struct{} `pg:"main.users_places,discard_unknown_columns"`
+type UserPlaceSubscription struct {
+	tableName struct{} `pg:"main.users_places_subscriptions,discard_unknown_columns"`
 
 	UserID  int `pg:"user_id,pk" json:"user_id"`
 	PlaceID int `pg:"place_id,pk" json:"place_id"`

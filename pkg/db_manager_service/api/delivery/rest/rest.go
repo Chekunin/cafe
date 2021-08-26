@@ -35,6 +35,7 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	router.GET("/adverts-by-place-id/:place_id", r.handlerGetAdvertsByPlaceID)
 	router.GET("/advert-by-id/:advert_id", r.handlerGetAdvertByID)
 	router.GET("/users-places-by-place-id/:place_id", r.handlerGetUsersPlacesByPlaceID)
+	router.GET("/users-places-by-user-id/:user_id", r.handlerGetUsersPlacesByUserID)
 	router.GET("/evaluation-criterions", r.handlerGetAllEvaluationCriterions)
 	router.GET("/place-evaluations", r.handlerGetAllPlaceEvaluations)
 	router.POST("/place-evaluation-with-marks", r.handlerAddPlaceEvaluationWithMarks)
@@ -52,9 +53,15 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	router.GET("/user-by-phone/:phone", r.handlerGetUserByVerifiedPhone)
 	router.POST("/user", r.handlerCreateUser)
 	router.POST("/user/:id", r.handlerUpdateUser)
+
 	router.GET("/user-subscriptions", r.handlerGetAllUserSubscriptions)
 	router.POST("/user-subscription", r.handlerAddUserSubscription)
 	router.DELETE("/user-subscription", r.handlerDeleteUserSubscription)
+
+	router.GET("/place-subscriptions", r.handlerGetAllPlaceSubscriptions)
+	router.POST("/place-subscription", r.handlerAddPlaceSubscription)
+	router.DELETE("/place-subscription", r.handlerDeletePlaceSubscription)
+
 	router.GET("/actual-user-phone-code-by-user-id/:user_id", r.handlerGetActualUserPhoneCodeByUserID)
 	router.POST("/user-phone-code", r.handlerCreateUserPhoneCode)
 	router.POST("/user-phone-code/:id", r.handlerUpdateUserPhoneCode)
@@ -225,7 +232,26 @@ func (r *rest) handlerGetUsersPlacesByPlaceID(c *gin.Context) {
 
 	resp, err := r.Usecase.GetUsersPlacesByPlaceID(c.Request.Context(), req.PlaceID)
 	if err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetUsersPlacesByPlaceID"), err)
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetUsersPlacesSubscriptionsByPlaceID"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerGetUsersPlacesByUserID(c *gin.Context) {
+	var req struct {
+		UserID int `uri:"user_id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := r.Usecase.GetUsersPlacesByUserID(c.Request.Context(), req.UserID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetUsersPlacesByUserID"), err)
 		c.AbortWithError(GetHttpCode(err), err)
 		return
 	}
@@ -545,6 +571,51 @@ func (r *rest) handlerDeleteUserSubscription(c *gin.Context) {
 
 	if err := r.Usecase.DeleteUserSubscription(c.Request.Context(), req); err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("usecase DeleteUserSubscription"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Status(http.StatusOK)
+}
+
+func (r *rest) handlerGetAllPlaceSubscriptions(c *gin.Context) {
+	resp, err := r.Usecase.GetAllPlaceSubscriptions(c.Request.Context())
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetAllPlaceSubscriptions"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerAddPlaceSubscription(c *gin.Context) {
+	var req models.UserPlaceSubscription
+	dec := gob.NewDecoder(c.Request.Body)
+	if err := dec.Decode(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("decode data"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := r.Usecase.AddPlaceSubscription(c.Request.Context(), req)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase AddUserSubscription"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerDeletePlaceSubscription(c *gin.Context) {
+	var req models.UserPlaceSubscription
+	dec := gob.NewDecoder(c.Request.Body)
+	if err := dec.Decode(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("decode data"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	if err := r.Usecase.DeletePlaceSubscription(c.Request.Context(), req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase DeletePlaceSubscription"), err)
 		c.AbortWithError(GetHttpCode(err), err)
 		return
 	}

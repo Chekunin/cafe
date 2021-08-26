@@ -49,7 +49,6 @@ func (r *rest) handlerGetUserSubscriptions(c *gin.Context) {
 		c.AbortWithError(GetHttpCode(err), err)
 		return
 	}
-	fmt.Printf("qqq\n%+v\n", resp)
 
 	c.JSON(http.StatusOK, resp)
 }

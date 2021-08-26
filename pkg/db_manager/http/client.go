@@ -16,6 +16,9 @@ type HttpDbManager struct {
 	httpClient *http.HttpClient
 }
 
+// todo: не забыть делать маппинг ошибок на локальные,
+//  а то будем отдавать пользователю ошибки внутренних сервисов
+
 func NewHttpDbManager(uri string) (*HttpDbManager, error) {
 	httpClient := http.NewHttpClient(http.HttpClientParams{
 		BaseUrl: uri,
@@ -367,12 +370,27 @@ func (h HttpDbManager) GetAdvertByID(ctx context.Context, advertID int) (models.
 	return resp, nil
 }
 
-func (h HttpDbManager) GetUsersPlacesByPlaceID(ctx context.Context, placeID int) ([]models.UserPlace, error) {
-	var resp []models.UserPlace
+func (h HttpDbManager) GetUsersPlacesSubscriptionsByPlaceID(ctx context.Context, placeID int) ([]models.UserPlaceSubscription, error) {
+	var resp []models.UserPlaceSubscription
 	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
 		Ctx:    ctx,
 		Method: "GET",
 		Url:    fmt.Sprintf("/users-places-by-place-id/%d", placeID),
+		Result: &resp,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (h HttpDbManager) GetUsersPlacesSubscriptionsByUserID(ctx context.Context, userID int) ([]models.UserPlaceSubscription, error) {
+	var resp []models.UserPlaceSubscription
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "GET",
+		Url:    fmt.Sprintf("/users-places-by-user-id/%d", userID),
 		Result: &resp,
 	})
 	if err != nil {
@@ -523,6 +541,50 @@ func (h HttpDbManager) DeleteUserSubscription(ctx context.Context, userSubscript
 		Method:  "DELETE",
 		Url:     "/user-subscription",
 		Payload: userSubscription,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return err
+	}
+	return nil
+}
+
+func (h HttpDbManager) GetAllPlaceSubscriptions(ctx context.Context) ([]models.UserPlaceSubscription, error) {
+	var resp []models.UserPlaceSubscription
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "GET",
+		Url:    "/place-subscriptions",
+		Result: &resp,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (h HttpDbManager) AddPlaceSubscription(ctx context.Context, userPlaceSubscription *models.UserPlaceSubscription) error {
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:     ctx,
+		Method:  "POST",
+		Url:     "/place-subscription",
+		Payload: *userPlaceSubscription,
+		Result:  userPlaceSubscription,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return err
+	}
+	return nil
+}
+
+func (h HttpDbManager) DeletePlaceSubscription(ctx context.Context, userPlaceSubscription models.UserPlaceSubscription) error {
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:     ctx,
+		Method:  "DELETE",
+		Url:     "/place-subscription",
+		Payload: userPlaceSubscription,
 	})
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)

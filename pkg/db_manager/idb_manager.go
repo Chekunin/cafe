@@ -34,16 +34,23 @@ type IDBManager interface {
 	GetUserByVerifiedPhone(ctx context.Context, phone string) (models.User, error)
 	CreateUser(ctx context.Context, user *models.User) error
 	UpdateUser(ctx context.Context, user *models.User) error
+
 	GetAllUserSubscriptions(ctx context.Context) ([]models.UserSubscription, error)
 	AddUserSubscription(ctx context.Context, userSubscription *models.UserSubscription) error
 	DeleteUserSubscription(ctx context.Context, userSubscription models.UserSubscription) error
+
+	GetAllPlaceSubscriptions(ctx context.Context) ([]models.UserPlaceSubscription, error)
+	AddPlaceSubscription(ctx context.Context, userPlaceSubscription *models.UserPlaceSubscription) error
+	DeletePlaceSubscription(ctx context.Context, userPlaceSubscription models.UserPlaceSubscription) error
+
 	GetActualUserPhoneCodeByUserID(ctx context.Context, userID int) (models.UserPhoneCode, error)
 	CreateUserPhoneCode(ctx context.Context, userPhoneCode *models.UserPhoneCode) error
 	UpdateUserPhoneCode(ctx context.Context, userPhoneCode *models.UserPhoneCode) error
 	ActivateUserPhone(ctx context.Context, userPhoneCodeID int) error
 	GetUsersFeedOfUserID(ctx context.Context, userID int, lastUserFeedID int, limit int) ([]models.UserFeed, error)
 	AddUsersFeed(ctx context.Context, usersFeed []models.UserFeed) error
-	GetUsersPlacesByPlaceID(ctx context.Context, placeID int) ([]models.UserPlace, error)
+	GetUsersPlacesSubscriptionsByPlaceID(ctx context.Context, placeID int) ([]models.UserPlaceSubscription, error)
+	GetUsersPlacesSubscriptionsByUserID(ctx context.Context, userID int) ([]models.UserPlaceSubscription, error)
 
 	AddFeedAdvertQueue(ctx context.Context, feedAdvertQueue *models.FeedAdvertQueue) error
 	PollFeedAdvertQueue(ctx context.Context) (models.FeedAdvertQueue, error)

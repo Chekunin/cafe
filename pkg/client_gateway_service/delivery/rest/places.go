@@ -306,3 +306,73 @@ func (r *rest) handlerGetPlaceAdvertsByPlaceID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, models.Convert(resp, modelTag))
 }
+
+func (r *rest) handlerGetPlaceSubscriptions(c *gin.Context) {
+	userID, has := common.FromContextUserID(c.Request.Context())
+	if !has {
+		err := wrapErr.NewWrapErr(fmt.Errorf("userID is not in context"), nil)
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	resp, err := r.usecase.GetPlaceSubscriptionsByUserID(c.Request.Context(), userID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetPlaceSubscriptions"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+func (r *rest) handlerSubscribeToPlace(c *gin.Context) {
+	var req struct {
+		PlaceID int `uri:"id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	userID, has := common.FromContextUserID(c.Request.Context())
+	if !has {
+		err := wrapErr.NewWrapErr(fmt.Errorf("userID is not in context"), nil)
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := r.usecase.SubscribeToPlace(c.Request.Context(), userID, req.PlaceID); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase SubscribeToPlace"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+func (r *rest) handlerUnsubscribeFromPlace(c *gin.Context) {
+	var req struct {
+		PlaceID int `uri:"id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	userID, has := common.FromContextUserID(c.Request.Context())
+	if !has {
+		err := wrapErr.NewWrapErr(fmt.Errorf("userID is not in context"), nil)
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := r.usecase.UnsubscribeFromPlace(c.Request.Context(), userID, req.PlaceID); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase UnsubscribeFromUser"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}

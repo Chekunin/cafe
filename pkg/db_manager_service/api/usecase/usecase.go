@@ -115,10 +115,19 @@ func (u *Usecase) GetAdvertByID(ctx context.Context, advertID int) (models.Adver
 	return res, nil
 }
 
-func (u *Usecase) GetUsersPlacesByPlaceID(ctx context.Context, placeID int) ([]models.UserPlace, error) {
-	res, err := u.dbManager.GetUsersPlacesByPlaceID(ctx, placeID)
+func (u *Usecase) GetUsersPlacesByPlaceID(ctx context.Context, placeID int) ([]models.UserPlaceSubscription, error) {
+	res, err := u.dbManager.GetUsersPlacesSubscriptionsByPlaceID(ctx, placeID)
 	if err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetUsersPlacesByPlaceID"), err)
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetUsersPlacesSubscriptionsByPlaceID"), err)
+		return nil, err
+	}
+	return res, nil
+}
+
+func (u *Usecase) GetUsersPlacesByUserID(ctx context.Context, userID int) ([]models.UserPlaceSubscription, error) {
+	res, err := u.dbManager.GetUsersPlacesSubscriptionsByUserID(ctx, userID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetUsersPlacesSubscriptionsByUserID"), err)
 		return nil, err
 	}
 	return res, nil
@@ -294,6 +303,31 @@ func (u *Usecase) AddUserSubscription(ctx context.Context, userSubscription mode
 func (u *Usecase) DeleteUserSubscription(ctx context.Context, userSubscription models.UserSubscription) error {
 	if err := u.dbManager.DeleteUserSubscription(ctx, userSubscription); err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager DeleteUserSubscription"), err)
+		return err
+	}
+	return nil
+}
+
+func (u *Usecase) GetAllPlaceSubscriptions(ctx context.Context) ([]models.UserPlaceSubscription, error) {
+	res, err := u.dbManager.GetAllPlaceSubscriptions(ctx)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetAllPlaceSubscriptions"), err)
+		return nil, err
+	}
+	return res, nil
+}
+
+func (u *Usecase) AddPlaceSubscription(ctx context.Context, userPlaceSubscription models.UserPlaceSubscription) (models.UserPlaceSubscription, error) {
+	if err := u.dbManager.AddPlaceSubscription(ctx, &userPlaceSubscription); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager AddPlaceSubscription"), err)
+		return models.UserPlaceSubscription{}, err
+	}
+	return userPlaceSubscription, nil
+}
+
+func (u *Usecase) DeletePlaceSubscription(ctx context.Context, userPlaceSubscription models.UserPlaceSubscription) error {
+	if err := u.dbManager.DeletePlaceSubscription(ctx, userPlaceSubscription); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager DeletePlaceSubscription"), err)
 		return err
 	}
 	return nil

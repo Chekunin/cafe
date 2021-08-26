@@ -141,9 +141,19 @@ func (d *DbManager) GetAdvertByID(ctx context.Context, advertID int) (models.Adv
 	return res, nil
 }
 
-func (d *DbManager) GetUsersPlacesByPlaceID(ctx context.Context, placeID int) ([]models.UserPlace, error) {
-	var res []models.UserPlace
+func (d *DbManager) GetUsersPlacesSubscriptionsByPlaceID(ctx context.Context, placeID int) ([]models.UserPlaceSubscription, error) {
+	var res []models.UserPlaceSubscription
 	if err := d.db.Model(&res).Where("place_id = ?", placeID).Select(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("select from db"), err)
+		err = handleSqlError(err, reflect.TypeOf(res))
+		return nil, err
+	}
+	return res, nil
+}
+
+func (d *DbManager) GetUsersPlacesSubscriptionsByUserID(ctx context.Context, userID int) ([]models.UserPlaceSubscription, error) {
+	var res []models.UserPlaceSubscription
+	if err := d.db.Model(&res).Where("user_id = ?", userID).Select(); err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("select from db"), err)
 		err = handleSqlError(err, reflect.TypeOf(res))
 		return nil, err
@@ -358,6 +368,35 @@ func (d *DbManager) DeleteUserSubscription(ctx context.Context, userSubscription
 	return nil
 }
 
+func (d *DbManager) GetAllPlaceSubscriptions(ctx context.Context) ([]models.UserPlaceSubscription, error) {
+	var res []models.UserPlaceSubscription
+	if err := d.db.Model(&res).Select(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("select from db"), err)
+		return nil, err
+	}
+	return res, nil
+}
+
+func (d *DbManager) AddPlaceSubscription(ctx context.Context, userPlaceSubscription *models.UserPlaceSubscription) error {
+	if _, err := d.db.Model(userPlaceSubscription).Returning("*").Insert(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("into into db userPlaceSubscription=%+v", userPlaceSubscription), err)
+		err = handleSqlError(err, reflect.TypeOf(*userPlaceSubscription))
+		if errors.Is(err, errs.ErrUniqueViolation(nil)) {
+			err = wrapErr.NewWrapErr(errs.ErrorEntityAlreadyExists, err)
+		}
+		return err
+	}
+	return nil
+}
+
+func (d *DbManager) DeletePlaceSubscription(ctx context.Context, userPlaceSubscription models.UserPlaceSubscription) error {
+	if _, err := d.db.Model(&userPlaceSubscription).WherePK().Delete(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("delete from db userPlaceSubscription=%+v", userPlaceSubscription), err)
+		return err
+	}
+	return nil
+}
+
 func (d *DbManager) GetActualUserPhoneCodeByUserID(ctx context.Context, userID int) (models.UserPhoneCode, error) {
 	var res models.UserPhoneCode
 	if err := d.db.Model(&res).Where("user_id = ? and actual is true", userID).Select(); err != nil {
@@ -410,7 +449,7 @@ func (d *DbManager) ActivateUserPhone(ctx context.Context, userPhoneCodeID int) 
 
 func (d *DbManager) GetUsersFeedOfUserID(ctx context.Context, userID int, lastUserFeedID int, limit int) ([]models.UserFeed, error) {
 	var res []models.UserFeed
-	query := d.db.Model(&res).Where("user_id = ?", userID)
+	query := d.db.Model(&res).Where("user_feed.user_id = ?", userID)
 	if lastUserFeedID != 0 {
 		query = query.Where("users_feed_id < ?", lastUserFeedID)
 	}
