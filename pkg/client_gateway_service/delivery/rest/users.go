@@ -100,7 +100,7 @@ func (r *rest) handlerGetUserFeed(c *gin.Context) {
 
 	resp, err := r.usecase.GetFeedOfUserID(c.Request.Context(), userID, reqQuery.LastAdvertID, reqQuery.Limit)
 	if err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetFeedOfUserID userID=%d", userID), err)
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetUsersFeedOfUserID userID=%d", userID), err)
 		c.AbortWithError(GetHttpCode(err), err)
 		return
 	}

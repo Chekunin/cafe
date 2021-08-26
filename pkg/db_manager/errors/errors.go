@@ -4,6 +4,8 @@ import "cafe/pkg/common"
 
 var MapErrorsByCode = map[int]common.Err{
 	1: ErrorEntityNotFound,
+	2: ErrorEntityAlreadyExists,
+	3: ErrorQueueIsEmpty,
 	//1001: ErrIntegrityConstraintViolation,
 	//1002: ErrRestrictViolation,
 	//1003: ErrNotNullViolation,
@@ -15,6 +17,7 @@ var MapErrorsByCode = map[int]common.Err{
 
 var ErrorEntityNotFound = common.NewErr(1, "Сущность не найдена", nil)
 var ErrorEntityAlreadyExists = common.NewErr(2, "Сущность уже существует", nil)
+var ErrorQueueIsEmpty = common.NewErr(3, "Очередь пустая", nil)
 
 // ошибки из БД
 var ErrIntegrityConstraintViolation = func(meta interface{}) common.Err {

@@ -14,8 +14,12 @@ const modelTag = "json"
 
 func handleSqlError(err error, t reflect.Type) error {
 	var pgErr pg.Error
-	if ok := errors.As(err, &pgErr); ok && pgErr.IntegrityViolation() {
-		err = wrapErr.NewWrapErr(getCorrectSqlError(pgErr, t), err)
+	if ok := errors.As(err, &pgErr); ok {
+		if pgErr.IntegrityViolation() {
+			err = wrapErr.NewWrapErr(getCorrectSqlError(pgErr, t), err)
+		} else if errors.Is(err, pg.ErrNoRows) {
+			err = wrapErr.NewWrapErr(errs.ErrorEntityNotFound, err)
+		}
 	}
 	return err
 }

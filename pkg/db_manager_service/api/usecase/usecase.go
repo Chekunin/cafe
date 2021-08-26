@@ -106,6 +106,24 @@ func (u *Usecase) GetAdvertsByPlaceID(ctx context.Context, placeID int, lastAdve
 	return res, nil
 }
 
+func (u *Usecase) GetAdvertByID(ctx context.Context, advertID int) (models.Advert, error) {
+	res, err := u.dbManager.GetAdvertByID(ctx, advertID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetAdvertByID"), err)
+		return models.Advert{}, err
+	}
+	return res, nil
+}
+
+func (u *Usecase) GetUsersPlacesByPlaceID(ctx context.Context, placeID int) ([]models.UserPlace, error) {
+	res, err := u.dbManager.GetUsersPlacesByPlaceID(ctx, placeID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetUsersPlacesByPlaceID"), err)
+		return nil, err
+	}
+	return res, nil
+}
+
 func (u *Usecase) GetAllEvaluationCriterions(ctx context.Context) ([]models.EvaluationCriterion, error) {
 	res, err := u.dbManager.GetAllEvaluationCriterions(ctx)
 	if err != nil {
@@ -315,12 +333,24 @@ func (u *Usecase) ActivateUserPhone(ctx context.Context, userPhoneCodeID int) er
 }
 
 func (u *Usecase) GetFeedOfUserID(ctx context.Context, userID int, lastUserFeedID int, limit int) ([]models.UserFeed, error) {
-	res, err := u.dbManager.GetFeedOfUserID(ctx, userID, lastUserFeedID, limit)
+	res, err := u.dbManager.GetUsersFeedOfUserID(ctx, userID, lastUserFeedID, limit)
 	if err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetFeedOfUserID"), err)
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetUsersFeedOfUserID"), err)
 		return nil, err
 	}
 	return res, nil
+}
+
+func (u *Usecase) AddUsersFeed(ctx context.Context, usersFeeds []models.UserFeed) error {
+	if len(usersFeeds) == 0 {
+		return nil
+	}
+	err := u.dbManager.AddUsersFeed(ctx, usersFeeds)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager AddUsersFeed"), err)
+		return err
+	}
+	return nil
 }
 
 func (u *Usecase) AddFeedAdvertQueue(ctx context.Context, feedAdvertQueue models.FeedAdvertQueue) (models.FeedAdvertQueue, error) {

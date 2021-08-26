@@ -352,6 +352,36 @@ func (h HttpDbManager) GetAdvertsByPlaceID(ctx context.Context, placeID int, las
 	return resp, nil
 }
 
+func (h HttpDbManager) GetAdvertByID(ctx context.Context, advertID int) (models.Advert, error) {
+	var resp models.Advert
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "GET",
+		Url:    fmt.Sprintf("/advert-by-id/%d", advertID),
+		Result: &resp,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return models.Advert{}, err
+	}
+	return resp, nil
+}
+
+func (h HttpDbManager) GetUsersPlacesByPlaceID(ctx context.Context, placeID int) ([]models.UserPlace, error) {
+	var resp []models.UserPlace
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "GET",
+		Url:    fmt.Sprintf("/users-places-by-place-id/%d", placeID),
+		Result: &resp,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return nil, err
+	}
+	return resp, nil
+}
+
 func (h HttpDbManager) AddReviewReviewMedias(ctx context.Context, reviewReviewMedias []models.ReviewReviewMedias) error {
 	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
 		Ctx:     ctx,
@@ -561,7 +591,7 @@ func (h HttpDbManager) ActivateUserPhone(ctx context.Context, userPhoneCodeID in
 	return nil
 }
 
-func (h HttpDbManager) GetFeedOfUserID(ctx context.Context, userID int, lastUserFeedID int, limit int) ([]models.UserFeed, error) {
+func (h HttpDbManager) GetUsersFeedOfUserID(ctx context.Context, userID int, lastUserFeedID int, limit int) ([]models.UserFeed, error) {
 	var resp []models.UserFeed
 	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
 		Ctx:    ctx,
@@ -578,6 +608,21 @@ func (h HttpDbManager) GetFeedOfUserID(ctx context.Context, userID int, lastUser
 		return nil, err
 	}
 	return resp, nil
+}
+
+func (h HttpDbManager) AddUsersFeed(ctx context.Context, usersFeed []models.UserFeed) error {
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:     ctx,
+		Method:  "POST",
+		Url:     fmt.Sprintf("/users-feeds"),
+		Payload: usersFeed,
+		Result:  &usersFeed,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return err
+	}
+	return nil
 }
 
 func (h HttpDbManager) AddFeedAdvertQueue(ctx context.Context, feedAdvertQueue *models.FeedAdvertQueue) error {

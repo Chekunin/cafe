@@ -16,6 +16,7 @@ type IDBManager interface {
 	GetAllAdverts(ctx context.Context) ([]models.Advert, error)
 	GetAllAdvertMedias(ctx context.Context) ([]models.AdvertMedia, error)
 	GetAdvertsByPlaceID(ctx context.Context, placeID int, lastAdvertID int, limit int) ([]models.Advert, error)
+	GetAdvertByID(ctx context.Context, advertID int) (models.Advert, error)
 	GetAllEvaluationCriterions(ctx context.Context) ([]models.EvaluationCriterion, error)
 	AddPlaceEvaluationWithMarks(ctx context.Context, placeEvaluation *models.PlaceEvaluation, marks []models.PlaceEvaluationMark) error
 	GetAllPlaceEvaluations(ctx context.Context) ([]models.PlaceEvaluation, error)
@@ -40,7 +41,9 @@ type IDBManager interface {
 	CreateUserPhoneCode(ctx context.Context, userPhoneCode *models.UserPhoneCode) error
 	UpdateUserPhoneCode(ctx context.Context, userPhoneCode *models.UserPhoneCode) error
 	ActivateUserPhone(ctx context.Context, userPhoneCodeID int) error
-	GetFeedOfUserID(ctx context.Context, userID int, lastUserFeedID int, limit int) ([]models.UserFeed, error)
+	GetUsersFeedOfUserID(ctx context.Context, userID int, lastUserFeedID int, limit int) ([]models.UserFeed, error)
+	AddUsersFeed(ctx context.Context, usersFeed []models.UserFeed) error
+	GetUsersPlacesByPlaceID(ctx context.Context, placeID int) ([]models.UserPlace, error)
 
 	AddFeedAdvertQueue(ctx context.Context, feedAdvertQueue *models.FeedAdvertQueue) error
 	PollFeedAdvertQueue(ctx context.Context) (models.FeedAdvertQueue, error)

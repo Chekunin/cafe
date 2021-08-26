@@ -51,6 +51,8 @@ services:
     environment:
       APP: client_sso_service
       LOG_LEVEL: 5
+    depends_on:
+      - db_manager_service
     ports:
       - 8083:80
 
@@ -62,6 +64,15 @@ services:
       LOG_LEVEL: 5
     ports:
       - 8084:80
+
+  feed_workpool_service:
+    <<: *go-service
+    command: ["./bin/feed_workpool_service", "-c", "./configs/feed_workpool_service/config.yaml"]
+    environment:
+      APP: feed_workpool_service
+      LOG_LEVEL: 5
+    depends_on:
+      - db_manager_service
 
   db:
     image: postgres:13

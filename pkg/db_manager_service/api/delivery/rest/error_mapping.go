@@ -17,5 +17,7 @@ func GetHttpCode(e error) int {
 }
 
 var errMappingToHttpCode = map[int]int{
-	errs.ErrorEntityNotFound.Code: 400,
+	errs.ErrorEntityNotFound.Code:      400,
+	errs.ErrorEntityAlreadyExists.Code: 400,
+	errs.ErrorQueueIsEmpty.Code:        400,
 }

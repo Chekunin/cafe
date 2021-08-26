@@ -252,21 +252,31 @@ type UserFeed struct {
 type FeedAdvertQueue struct {
 	tableName struct{} `pg:"main.feed_advert_queue,discard_unknown_columns"`
 
-	AdvertID int `pg:"advert_id,pk" json:"advert_id"`
-	Status   int `pg:"status" json:"status"`
+	AdvertID             int       `pg:"advert_id,pk" json:"advert_id"`
+	Status               int       `pg:"status" json:"status"`
+	ChangeStatusDatetime time.Time `pg:"change_status_datetime" json:"change_status_datetime"`
 }
 
 type FeedReviewQueue struct {
 	tableName struct{} `pg:"main.feed_review_queue,discard_unknown_columns"`
 
-	ReviewID int `pg:"review_id,pk" json:"review_id"`
-	Status   int `pg:"status" json:"status"`
+	ReviewID             int       `pg:"review_id,pk" json:"review_id"`
+	Status               int       `pg:"status" json:"status"`
+	ChangeStatusDatetime time.Time `pg:"change_status_datetime" json:"change_status_datetime"`
 }
 
 type FeedUserSubscribeQueue struct {
 	tableName struct{} `pg:"main.feed_user_subscribe_queue,discard_unknown_columns"`
 
-	FollowerUserID int `pg:"follower_user_id,pk" json:"follower_user_id"`
-	FollowedUserID int `pg:"followed_user_id,pk" json:"followed_user_id"`
-	Status         int `pg:"status" json:"status"`
+	FollowerUserID       int       `pg:"follower_user_id,pk" json:"follower_user_id"`
+	FollowedUserID       int       `pg:"followed_user_id,pk" json:"followed_user_id"`
+	Status               int       `pg:"status" json:"status"`
+	ChangeStatusDatetime time.Time `pg:"change_status_datetime" json:"change_status_datetime"`
+}
+
+type UserPlace struct {
+	tableName struct{} `pg:"main.users_places,discard_unknown_columns"`
+
+	UserID  int `pg:"user_id,pk" json:"user_id"`
+	PlaceID int `pg:"place_id,pk" json:"place_id"`
 }

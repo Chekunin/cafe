@@ -33,6 +33,8 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	router.GET("/adverts", r.handlerGetAllAdverts)
 	router.GET("/advert-medias", r.handlerGetAllAdvertMedias)
 	router.GET("/adverts-by-place-id/:place_id", r.handlerGetAdvertsByPlaceID)
+	router.GET("/advert-by-id/:advert_id", r.handlerGetAdvertByID)
+	router.GET("/users-places-by-place-id/:place_id", r.handlerGetUsersPlacesByPlaceID)
 	router.GET("/evaluation-criterions", r.handlerGetAllEvaluationCriterions)
 	router.GET("/place-evaluations", r.handlerGetAllPlaceEvaluations)
 	router.POST("/place-evaluation-with-marks", r.handlerAddPlaceEvaluationWithMarks)
@@ -58,6 +60,7 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	router.POST("/user-phone-code/:id", r.handlerUpdateUserPhoneCode)
 	router.POST("/activate-user-phone", r.handlerActivateUserPhone)
 	router.GET("/feed-by-user-id/:user_id", r.handlerGetFeedOfUserID)
+	router.POST("/users-feeds", r.handlerAddUsersFeed)
 
 	router.POST("/add-feed-advert-queue", r.handlerAddFeedAdvertQueue)
 	router.POST("/poll-feed-advert-queue", r.handlerPollFeedAdvertQueue)
@@ -185,6 +188,44 @@ func (r *rest) handlerGetAdvertsByPlaceID(c *gin.Context) {
 	resp, err := r.Usecase.GetAdvertsByPlaceID(c.Request.Context(), req.PlaceID, reqQuery.LastAdvertID, reqQuery.Limit)
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetAdvertsByPlaceID"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerGetAdvertByID(c *gin.Context) {
+	var req struct {
+		AdvertID int `uri:"advert_id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := r.Usecase.GetAdvertByID(c.Request.Context(), req.AdvertID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetAdvertByID"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerGetUsersPlacesByPlaceID(c *gin.Context) {
+	var req struct {
+		PlaceID int `uri:"place_id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := r.Usecase.GetUsersPlacesByPlaceID(c.Request.Context(), req.PlaceID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetUsersPlacesByPlaceID"), err)
 		c.AbortWithError(GetHttpCode(err), err)
 		return
 	}
@@ -612,11 +653,29 @@ func (r *rest) handlerGetFeedOfUserID(c *gin.Context) {
 
 	resp, err := r.Usecase.GetFeedOfUserID(c.Request.Context(), req.UserID, reqQuery.LastUserFeedID, reqQuery.Limit)
 	if err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetFeedOfUserID"), err)
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetUsersFeedOfUserID"), err)
 		c.AbortWithError(GetHttpCode(err), err)
 		return
 	}
 	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerAddUsersFeed(c *gin.Context) {
+	var req []models.UserFeed
+	dec := gob.NewDecoder(c.Request.Body)
+	if err := dec.Decode(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("decode data"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	err := r.Usecase.AddUsersFeed(c.Request.Context(), req)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetUsersFeedOfUserID"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(req))
 }
 
 func (r *rest) handlerAddFeedAdvertQueue(c *gin.Context) {
