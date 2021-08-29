@@ -1,0 +1,27 @@
+package errors
+
+import "cafe/pkg/common"
+
+var (
+	UnknownError                = common.NewErr(0, "Unknown error", nil)
+	ErrIncorrectEmailOrPassword = common.NewErr(1, "Неправильный email или пароль", nil)
+	ErrAuthorizationHeader      = common.NewErr(2, "Формат заголовка авторизации должен быть Bearer {token}", nil)
+	ErrIncorrectToken           = common.NewErr(3, "Неправильный токен", nil)
+	ErrIncorrectRequest         = common.NewErr(400, "Неправильная ошибка", nil)
+	ErrInternalServerError      = common.NewErr(500, "Внутренняя ошибка сервера", nil)
+)
+
+var codeToError = map[int]error{
+	1:   ErrIncorrectEmailOrPassword,
+	2:   ErrAuthorizationHeader,
+	3:   ErrIncorrectToken,
+	400: ErrIncorrectRequest,
+	500: ErrInternalServerError,
+}
+
+func GetErrByCode(code int) (error, bool) {
+	if err, has := codeToError[code]; has {
+		return err, true
+	}
+	return nil, false
+}
