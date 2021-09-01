@@ -276,6 +276,21 @@ func (h HttpDbManager) GetReviewsByUserID(ctx context.Context, userID int, lastR
 	return resp, nil
 }
 
+func (h HttpDbManager) GetReviewByID(ctx context.Context, reviewID int) (models.Review, error) {
+	var resp models.Review
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "GET",
+		Url:    fmt.Sprintf("/review-by-id/%d", reviewID),
+		Result: &resp,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return models.Review{}, err
+	}
+	return resp, nil
+}
+
 func (h HttpDbManager) AddReview(ctx context.Context, review *models.Review) error {
 	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
 		Ctx:     ctx,
@@ -370,7 +385,7 @@ func (h HttpDbManager) GetAdvertByID(ctx context.Context, advertID int) (models.
 	return resp, nil
 }
 
-func (h HttpDbManager) GetUsersPlacesSubscriptionsByPlaceID(ctx context.Context, placeID int) ([]models.UserPlaceSubscription, error) {
+func (h HttpDbManager) GetUserPlaceSubscriptionsByPlaceID(ctx context.Context, placeID int) ([]models.UserPlaceSubscription, error) {
 	var resp []models.UserPlaceSubscription
 	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
 		Ctx:    ctx,
@@ -547,6 +562,21 @@ func (h HttpDbManager) DeleteUserSubscription(ctx context.Context, userSubscript
 		return err
 	}
 	return nil
+}
+
+func (h HttpDbManager) GetUserSubscriptionsByFollowedUserID(ctx context.Context, followedUserID int) ([]models.UserSubscription, error) {
+	var resp []models.UserSubscription
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "GET",
+		Url:    fmt.Sprintf("/users-subscriptions-by-followed-user-id/%d", followedUserID),
+		Result: &resp,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return nil, err
+	}
+	return resp, nil
 }
 
 func (h HttpDbManager) GetAllPlaceSubscriptions(ctx context.Context) ([]models.UserPlaceSubscription, error) {

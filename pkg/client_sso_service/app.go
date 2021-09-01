@@ -18,7 +18,6 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/go-pg/pg/v10"
 	"github.com/go-redis/redis/v8"
 	"net/http"
 	"os"
@@ -60,7 +59,6 @@ type App struct {
 	usecase  *usecase.Usecase
 	route    *gin.Engine
 	doneChan chan bool
-	db       *pg.DB
 }
 
 func NewApp(config Config) *App {
@@ -184,10 +182,6 @@ func (a *App) Run() {
 	log.Info("Shutdown Server (timeout of 3 seconds) ...")
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-
-	if err := a.db.Close(); err != nil {
-		catcherr.Catch(wrapErr.NewWrapErr(fmt.Errorf("close db"), err))
-	}
 
 	if err := srv.Shutdown(ctx); err != nil {
 		catcherr.Catch(wrapErr.NewWrapErr(fmt.Errorf("Server forced to shutdown"), err))

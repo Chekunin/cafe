@@ -11,6 +11,7 @@ import (
 	_ "cafe/pkg/common/logman/drivers/zap"
 	"cafe/pkg/common/utils"
 	httpDbManager "cafe/pkg/db_manager/http"
+	feedQueueClient "cafe/pkg/feed_queue/client"
 	httpReviewMediaStorage "cafe/pkg/media_storage/http"
 	httpNsi "cafe/pkg/nsi/http"
 	"context"
@@ -22,6 +23,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-pg/pg/v10"
+	"github.com/hibiken/asynq"
 	"net/http"
 	"os"
 	"os/signal"
@@ -40,6 +42,15 @@ type Config struct {
 	NsiURL                string                      `yaml:"nsi_url"`
 	ClientSsoURL          string                      `yaml:"client_sso_url"`
 	ReviewMediaStorageURL string                      `yaml:"review_media_storage_url"`
+	FeedQueueClientRedis  RedisConfig                 `yaml:"feed_queue_client_redis"`
+}
+
+type RedisConfig struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	DB       int    `yaml:"db"`
 }
 
 type App struct {
@@ -137,11 +148,21 @@ func NewApp(config Config) *App {
 		catcherr.AsCritical().CatchAndExit(err)
 	}
 
+	feedQueueClient := feedQueueClient.NewClient(feedQueueClient.NewClientParams{
+		RedisClientOpt: asynq.RedisClientOpt{
+			Addr:     fmt.Sprintf("%s:%d", config.FeedQueueClientRedis.Host, config.FeedQueueClientRedis.Port),
+			Username: config.FeedQueueClientRedis.User,
+			Password: config.FeedQueueClientRedis.Password,
+			DB:       config.FeedQueueClientRedis.DB,
+		},
+	})
+
 	usecase := usecase.NewUsecase(usecase.NewUsecaseParams{
 		DbManager:          dbManager,
 		Nsi:                nsi,
 		ClientSso:          clientSso,
 		ReviewMediaStorage: reviewMediaStorage,
+		FeedQueueClient:    feedQueueClient,
 	})
 	rest.NewRest(r.Group("/v1"), usecase, clientSso)
 

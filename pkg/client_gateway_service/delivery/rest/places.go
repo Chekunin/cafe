@@ -119,6 +119,15 @@ func (r *rest) handlerAddPlaceReview(c *gin.Context) {
 		return
 	}
 
+	var reqUri struct {
+		PlaceID int `uri:"id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&reqUri); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
 	userID, has := common.FromContextUserID(c.Request.Context())
 	if !has {
 		err := wrapErr.NewWrapErr(fmt.Errorf("userID is not in context"), nil)
@@ -126,7 +135,7 @@ func (r *rest) handlerAddPlaceReview(c *gin.Context) {
 		return
 	}
 
-	review, err := r.usecase.AddPlaceReview(c.Request.Context(), userID, req.Text, req.ReviewMediaIDs)
+	review, err := r.usecase.AddPlaceReview(c.Request.Context(), userID, reqUri.PlaceID, req.Text, req.ReviewMediaIDs)
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("usecase AddPlaceReview"), err)
 		c.AbortWithError(GetHttpCode(err), err)

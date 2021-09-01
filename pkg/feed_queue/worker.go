@@ -1,4 +1,4 @@
-package feed_advert_queue_worker
+package feed_queue
 
 import (
 	"cafe/pkg/common/catcherr"
@@ -76,9 +76,9 @@ func (w *WorkerPool) execFunc(advertID int) error {
 	}
 
 	// достаём всех пользователей, которые подписаны на данное заведение и добавляем запись им в users_feeds
-	userPlaces, err := w.dbManager.GetUsersPlacesSubscriptionsByPlaceID(context.TODO(), advert.PlaceID)
+	userPlaces, err := w.dbManager.GetUserPlaceSubscriptionsByPlaceID(context.TODO(), advert.PlaceID)
 	if err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetUsersPlacesSubscriptionsByPlaceID placeID=%d", advert.PlaceID), err)
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetUserPlaceSubscriptionsByPlaceID placeID=%d", advert.PlaceID), err)
 		return err
 	}
 

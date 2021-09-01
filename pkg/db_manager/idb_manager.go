@@ -23,6 +23,7 @@ type IDBManager interface {
 	GetAllPlaceEvaluationMarks(ctx context.Context) ([]models.PlaceEvaluationMark, error)
 	GetAllReviews(ctx context.Context) ([]models.Review, error)
 	GetReviewsByUserID(ctx context.Context, userID int, lastReviewID int, limit int) ([]models.Review, error)
+	GetReviewByID(ctx context.Context, reviewID int) (models.Review, error)
 	AddReview(ctx context.Context, review *models.Review) error
 	GetAllReviewMedias(ctx context.Context) ([]models.ReviewMedia, error)
 	AddReviewMedia(ctx context.Context, reviewMedia *models.ReviewMedia) error
@@ -38,6 +39,7 @@ type IDBManager interface {
 	GetAllUserSubscriptions(ctx context.Context) ([]models.UserSubscription, error)
 	AddUserSubscription(ctx context.Context, userSubscription *models.UserSubscription) error
 	DeleteUserSubscription(ctx context.Context, userSubscription models.UserSubscription) error
+	GetUserSubscriptionsByFollowedUserID(ctx context.Context, followedUserID int) ([]models.UserSubscription, error)
 
 	GetAllPlaceSubscriptions(ctx context.Context) ([]models.UserPlaceSubscription, error)
 	AddPlaceSubscription(ctx context.Context, userPlaceSubscription *models.UserPlaceSubscription) error
@@ -49,7 +51,7 @@ type IDBManager interface {
 	ActivateUserPhone(ctx context.Context, userPhoneCodeID int) error
 	GetUsersFeedOfUserID(ctx context.Context, userID int, lastUserFeedID int, limit int) ([]models.UserFeed, error)
 	AddUsersFeed(ctx context.Context, usersFeed []models.UserFeed) error
-	GetUsersPlacesSubscriptionsByPlaceID(ctx context.Context, placeID int) ([]models.UserPlaceSubscription, error)
+	GetUserPlaceSubscriptionsByPlaceID(ctx context.Context, placeID int) ([]models.UserPlaceSubscription, error)
 	GetUsersPlacesSubscriptionsByUserID(ctx context.Context, userID int) ([]models.UserPlaceSubscription, error)
 
 	AddFeedAdvertQueue(ctx context.Context, feedAdvertQueue *models.FeedAdvertQueue) error

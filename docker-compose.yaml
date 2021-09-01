@@ -65,13 +65,14 @@ services:
     ports:
       - 8084:80
 
-  feed_workpool_service:
+  feed_workers_service:
     <<: *go-service
-    command: ["./bin/feed_workpool_service", "-c", "./configs/feed_workpool_service/config.yaml"]
+    command: ["./bin/feed_workers_service", "-c", "./configs/feed_workers_service/config.yaml"]
     environment:
-      APP: feed_workpool_service
+      APP: feed_workers_service
       LOG_LEVEL: 5
     depends_on:
+      - redis
       - db_manager_service
 
   db:
@@ -104,10 +105,20 @@ services:
       - ./scripts/wait-for-pg.sh:/app/wait-for-pg.sh
     working_dir: /app
 
+  queue_monitor:
+    image: hibiken/asynqmon
+    ports:
+      - 8090:8080
+    command: [ "--redis-addr", "redis:6379" ]
+    depends_on:
+      - redis
+
   redis:
     image: redis:5-alpine
     ports:
       - 6379:6379
+    volumes:
+      - redis:/data
 
 networks:
   default:
@@ -115,3 +126,4 @@ networks:
 
 volumes:
   pgdata:
+  redis:

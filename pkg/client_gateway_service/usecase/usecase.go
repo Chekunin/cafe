@@ -3,6 +3,7 @@ package usecase
 import (
 	"cafe/pkg/client_sso"
 	"cafe/pkg/db_manager"
+	feedQueueClient "cafe/pkg/feed_queue/client"
 	"cafe/pkg/media_storage"
 	"cafe/pkg/models"
 	"cafe/pkg/nsi"
@@ -18,6 +19,7 @@ type Usecase struct {
 	nsi                nsi.INSI
 	clientSso          client_sso.IClientSso
 	reviewMediaStorage media_storage.IMediaStorage
+	feedQueueClient    *feedQueueClient.Client
 }
 
 type NewUsecaseParams struct {
@@ -25,6 +27,7 @@ type NewUsecaseParams struct {
 	Nsi                nsi.INSI
 	ClientSso          client_sso.IClientSso
 	ReviewMediaStorage media_storage.IMediaStorage
+	FeedQueueClient    *feedQueueClient.Client
 }
 
 func NewUsecase(params NewUsecaseParams) *Usecase {
@@ -35,6 +38,7 @@ func NewUsecase(params NewUsecaseParams) *Usecase {
 		nsi:                params.Nsi,
 		clientSso:          params.ClientSso,
 		reviewMediaStorage: params.ReviewMediaStorage,
+		feedQueueClient:    params.FeedQueueClient,
 	}
 }
 

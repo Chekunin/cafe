@@ -42,6 +42,7 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	router.GET("/place-evaluation-marks", r.handlerGetAllPlaceEvaluationMarks)
 	router.GET("/reviews", r.handlerGetAllReviews)
 	router.GET("/reviews-by-user-id/:user_id", r.handlerGetReviewsByUserID)
+	router.GET("/review-by-id/:review_id", r.handlerGetGetReviewByID)
 	router.POST("/review", r.handlerAddReview)
 	router.POST("/review-media", r.handlerAddReviewMedia)
 	router.GET("/review-medias", r.handlerGetAllReviewMedias)
@@ -57,6 +58,7 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	router.GET("/user-subscriptions", r.handlerGetAllUserSubscriptions)
 	router.POST("/user-subscription", r.handlerAddUserSubscription)
 	router.DELETE("/user-subscription", r.handlerDeleteUserSubscription)
+	router.GET("/users-subscriptions-by-followed-user-id/:followed_user_id", r.handlerGetUserSubscriptionsByFollowedUserID)
 
 	router.GET("/place-subscriptions", r.handlerGetAllPlaceSubscriptions)
 	router.POST("/place-subscription", r.handlerAddPlaceSubscription)
@@ -230,9 +232,9 @@ func (r *rest) handlerGetUsersPlacesByPlaceID(c *gin.Context) {
 		return
 	}
 
-	resp, err := r.Usecase.GetUsersPlacesByPlaceID(c.Request.Context(), req.PlaceID)
+	resp, err := r.Usecase.GetUserPlaceSubscriptionsByPlaceID(c.Request.Context(), req.PlaceID)
 	if err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetUsersPlacesSubscriptionsByPlaceID"), err)
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetUserPlaceSubscriptionsByPlaceID"), err)
 		c.AbortWithError(GetHttpCode(err), err)
 		return
 	}
@@ -338,6 +340,25 @@ func (r *rest) handlerGetReviewsByUserID(c *gin.Context) {
 	resp, err := r.Usecase.GetReviewsByUserID(c.Request.Context(), req.UserID, reqQuery.LastReviewID, reqQuery.Limit)
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetReviewsByUserID"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerGetGetReviewByID(c *gin.Context) {
+	var req struct {
+		ReviewID int `uri:"review_id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := r.Usecase.GetReviewByID(c.Request.Context(), req.ReviewID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetReviewByID reviewID=%d", req.ReviewID), err)
 		c.AbortWithError(GetHttpCode(err), err)
 		return
 	}
@@ -581,6 +602,25 @@ func (r *rest) handlerGetAllPlaceSubscriptions(c *gin.Context) {
 	resp, err := r.Usecase.GetAllPlaceSubscriptions(c.Request.Context())
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetAllPlaceSubscriptions"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
+}
+
+func (r *rest) handlerGetUserSubscriptionsByFollowedUserID(c *gin.Context) {
+	var req struct {
+		FollowedUserID int `uri:"followed_user_id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := r.Usecase.GetUserSubscriptionsByFollowedUserID(c.Request.Context(), req.FollowedUserID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetUserSubscriptionsByFollowedUserID followedUserID=%d", req.FollowedUserID), err)
 		c.AbortWithError(GetHttpCode(err), err)
 		return
 	}

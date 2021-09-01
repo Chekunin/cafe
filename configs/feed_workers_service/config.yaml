@@ -20,6 +20,9 @@ logChannels:
 
 db_manager_url: http://db_manager_service/v1
 
-wp:
-  check_db_period: 20s
-  worker_amount: 4
+redis:
+  host: redis
+  port: 6379
+  user: ""
+  password: ""
+  db: 1

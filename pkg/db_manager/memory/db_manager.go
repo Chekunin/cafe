@@ -141,7 +141,7 @@ func (d *DbManager) GetAdvertByID(ctx context.Context, advertID int) (models.Adv
 	return res, nil
 }
 
-func (d *DbManager) GetUsersPlacesSubscriptionsByPlaceID(ctx context.Context, placeID int) ([]models.UserPlaceSubscription, error) {
+func (d *DbManager) GetUserPlaceSubscriptionsByPlaceID(ctx context.Context, placeID int) ([]models.UserPlaceSubscription, error) {
 	var res []models.UserPlaceSubscription
 	if err := d.db.Model(&res).Where("place_id = ?", placeID).Select(); err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("select from db"), err)
@@ -230,6 +230,16 @@ func (d *DbManager) GetReviewsByUserID(ctx context.Context, userID int, lastRevi
 		Select(); err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("select from db"), err)
 		return nil, err
+	}
+	return res, nil
+}
+
+func (d *DbManager) GetReviewByID(ctx context.Context, reviewID int) (models.Review, error) {
+	res := models.Review{ID: reviewID}
+	if err := d.db.Model(&res).WherePK().Select(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("select from db"), err)
+		err = handleSqlError(err, reflect.TypeOf(res))
+		return models.Review{}, err
 	}
 	return res, nil
 }
@@ -366,6 +376,16 @@ func (d *DbManager) DeleteUserSubscription(ctx context.Context, userSubscription
 		return err
 	}
 	return nil
+}
+
+func (d *DbManager) GetUserSubscriptionsByFollowedUserID(ctx context.Context, followedUserID int) ([]models.UserSubscription, error) {
+	var res []models.UserSubscription
+	if err := d.db.Model(&res).Where("followed_user_id = ?", followedUserID).Select(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("select from db"), err)
+		err = handleSqlError(err, reflect.TypeOf(res))
+		return nil, err
+	}
+	return res, nil
 }
 
 func (d *DbManager) GetAllPlaceSubscriptions(ctx context.Context) ([]models.UserPlaceSubscription, error) {

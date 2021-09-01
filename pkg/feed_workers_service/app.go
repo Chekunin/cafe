@@ -1,4 +1,4 @@
-package feed_workpool_service
+package feed_workers_service
 
 import (
 	"cafe/pkg/common"
@@ -6,14 +6,17 @@ import (
 	log "cafe/pkg/common/logman"
 	_ "cafe/pkg/common/logman/drivers/stack"
 	_ "cafe/pkg/common/logman/drivers/zap"
+	"cafe/pkg/common/utils"
 	httpDbManaber "cafe/pkg/db_manager/http"
-	"cafe/pkg/feed_advert_queue_worker"
+	"cafe/pkg/feed_queue/workers"
 	"context"
 	"errors"
 	"fmt"
 	wrapErr "github.com/Chekunin/wraperr"
 	"github.com/getsentry/sentry-go"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/hibiken/asynq"
 	"net/http"
 	"os"
 	"os/signal"
@@ -22,21 +25,38 @@ import (
 )
 
 type Config struct {
-	Listen         string                          `yaml:"listen"`
-	DocPath        string                          `yaml:"docPath"`
-	SentryDSN      string                          `yaml:"sentry_dsn"`
-	SentryENV      string                          `yaml:"sentry_env"`
-	Logger         log.Config                      `yaml:"logger"`
-	LoggerChannels log.ChannelArbitraryConfigs     `yaml:"logChannels"`
-	DbManagerURL   string                          `yaml:"db_manager_url"`
-	WPConfig       feed_advert_queue_worker.Config `yaml:"wp"`
+	Listen         string                      `yaml:"listen"`
+	DocPath        string                      `yaml:"docPath"`
+	SentryDSN      string                      `yaml:"sentry_dsn"`
+	SentryENV      string                      `yaml:"sentry_env"`
+	Logger         log.Config                  `yaml:"logger"`
+	LoggerChannels log.ChannelArbitraryConfigs `yaml:"logChannels"`
+	DbManagerURL   string                      `yaml:"db_manager_url"`
+	Redis          RedisConfig                 `yaml:"redis"`
+}
+
+type DbConfig struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	Name     string `yaml:"name"`
+	PoolSize int    `yaml:"pool_size"`
+}
+
+type RedisConfig struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	DB       int    `yaml:"db"`
 }
 
 type App struct {
-	config   Config
-	route    *gin.Engine
-	wp       *feed_advert_queue_worker.WorkerPool
-	doneChan chan bool
+	config      Config
+	workersPool *workers.Workers
+	route       *gin.Engine
+	doneChan    chan bool
 }
 
 func NewApp(config Config) *App {
@@ -56,6 +76,17 @@ func NewApp(config Config) *App {
 	}
 
 	r := gin.New()
+
+	r.Use(common.RequestIdMiddleware())
+	r.Use(common.RequestLogger())
+	r.Use(common.ErrorLogger())
+	r.Use(common.ErrorResponder(func(c *gin.Context, code int, obj interface{}) {
+		c.Data(0, "application/x-gob", utils.ToGobBytes(obj))
+	}))
+	r.Use(common.Recovery())
+
+	r.Use(cors.New(utils.GetCorsConfigs()))
+
 	r.NoRoute(func(c *gin.Context) {
 		c.AbortWithError(http.StatusNotFound, common.ErrPageNotFound)
 	})
@@ -88,21 +119,25 @@ func NewApp(config Config) *App {
 
 	dbManager, err := httpDbManaber.NewHttpDbManager(config.DbManagerURL)
 	if err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("NewDbManager"), err)
+		err = wrapErr.NewWrapErr(fmt.Errorf("NewHttpDbManager"), err)
 		catcherr.AsCritical().CatchAndExit(err)
 	}
 
-	wp, err := feed_advert_queue_worker.NewWorkerPool(config.WPConfig, dbManager)
-	if err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("NewWorkerPool"), err)
-		catcherr.AsCritical().CatchAndExit(err)
-	}
+	workersPool := workers.NewWorkers(workers.NewWorkersParams{
+		RedisClientOpt: asynq.RedisClientOpt{
+			Addr: fmt.Sprintf("%s:%d", config.Redis.Host, config.Redis.Port),
+			//Username: config.Redis.User,
+			//Password: config.Redis.Password,
+			//DB:       config.Redis.DB,
+		},
+		DbManager: dbManager,
+	})
 
 	app := App{
-		config:   config,
-		wp:       wp,
-		route:    r,
-		doneChan: make(chan bool, 1),
+		config:      config,
+		workersPool: workersPool,
+		route:       r,
+		doneChan:    make(chan bool, 1),
 	}
 
 	return &app
@@ -127,7 +162,10 @@ func (a *App) Run() {
 		}
 	}()
 
-	a.wp.Start()
+	if err := a.workersPool.Run(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("workersPool Run"), err)
+		catcherr.AsCritical().Catch(err)
+	}
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
@@ -139,12 +177,13 @@ func (a *App) Run() {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	a.wp.Stop()
-
 	if err := srv.Shutdown(ctx); err != nil {
 		catcherr.Catch(wrapErr.NewWrapErr(fmt.Errorf("Server forced to shutdown"), err))
 	}
 
+	a.workersPool.Shutdown()
+
+	<-ctx.Done()
 	log.Info("Server exiting")
 }
 

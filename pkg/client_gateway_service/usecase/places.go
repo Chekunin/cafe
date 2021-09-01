@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"cafe/pkg/common/catcherr"
 	"cafe/pkg/models"
 	"context"
 	"fmt"
@@ -88,10 +89,11 @@ func (u *Usecase) GetReviewMediaData(ctx context.Context, reviewMediaID int) (io
 	return readCloser, contentType, nil
 }
 
-func (u *Usecase) AddPlaceReview(ctx context.Context, userID int, text string, reviewMediaIDs []int) (models.Review, error) {
+func (u *Usecase) AddPlaceReview(ctx context.Context, userID int, placeID int, text string, reviewMediaIDs []int) (models.Review, error) {
 	// создаём новое ревью в БД
 	review := models.Review{
 		UserID:          userID,
+		PlaceID:         placeID,
 		Text:            text,
 		PublishDateTime: time.Now(),
 	}
@@ -122,6 +124,11 @@ func (u *Usecase) AddPlaceReview(ctx context.Context, userID int, text string, r
 			return models.Review{}, err
 		}
 		review.ReviewMedias = append(review.ReviewMedias, reviewMedia)
+	}
+
+	if err := u.feedQueueClient.AddNewReview(review.ID); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("feedQueueClient AddNewReview reviewID=%d", review.ID), err)
+		catcherr.AsWarning().Catch(err)
 	}
 
 	return review, nil

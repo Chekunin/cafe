@@ -115,10 +115,10 @@ func (u *Usecase) GetAdvertByID(ctx context.Context, advertID int) (models.Adver
 	return res, nil
 }
 
-func (u *Usecase) GetUsersPlacesByPlaceID(ctx context.Context, placeID int) ([]models.UserPlaceSubscription, error) {
-	res, err := u.dbManager.GetUsersPlacesSubscriptionsByPlaceID(ctx, placeID)
+func (u *Usecase) GetUserPlaceSubscriptionsByPlaceID(ctx context.Context, placeID int) ([]models.UserPlaceSubscription, error) {
+	res, err := u.dbManager.GetUserPlaceSubscriptionsByPlaceID(ctx, placeID)
 	if err != nil {
-		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetUsersPlacesSubscriptionsByPlaceID"), err)
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetUserPlaceSubscriptionsByPlaceID"), err)
 		return nil, err
 	}
 	return res, nil
@@ -182,6 +182,15 @@ func (u *Usecase) GetReviewsByUserID(ctx context.Context, userID int, lastReview
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetReviewsByUserID"), err)
 		return nil, err
+	}
+	return res, nil
+}
+
+func (u *Usecase) GetReviewByID(ctx context.Context, reviewID int) (models.Review, error) {
+	res, err := u.dbManager.GetReviewByID(ctx, reviewID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetReviewByID"), err)
+		return models.Review{}, err
 	}
 	return res, nil
 }
@@ -306,6 +315,15 @@ func (u *Usecase) DeleteUserSubscription(ctx context.Context, userSubscription m
 		return err
 	}
 	return nil
+}
+
+func (u *Usecase) GetUserSubscriptionsByFollowedUserID(ctx context.Context, followedUserID int) ([]models.UserSubscription, error) {
+	res, err := u.dbManager.GetUserSubscriptionsByFollowedUserID(ctx, followedUserID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetUserSubscriptionsByFollowedUserID followedUserID=%d", followedUserID), err)
+		return nil, err
+	}
+	return res, nil
 }
 
 func (u *Usecase) GetAllPlaceSubscriptions(ctx context.Context) ([]models.UserPlaceSubscription, error) {
