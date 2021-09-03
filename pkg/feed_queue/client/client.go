@@ -57,3 +57,43 @@ func (c *Client) AddNewReview(reviewID int) error {
 
 	return nil
 }
+
+func (c *Client) AddSubscribeUser(followerUserID int, followedUserID int) error {
+	payload, err := json.Marshal(models.SubscribeUserTaskPayload{
+		FollowerUserID: followerUserID,
+		FollowedUserID: followedUserID,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("json marshal"), err)
+		return err
+	}
+	task := asynq.NewTask(models.TypeSubscribeUser, payload)
+
+	_, err = c.client.Enqueue(task)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("client Enqueue"), err)
+		return err
+	}
+
+	return nil
+}
+
+func (c *Client) AddSubscribePlace(userID int, placeID int) error {
+	payload, err := json.Marshal(models.SubscribePlaceTaskPayload{
+		UserID:  userID,
+		PlaceID: placeID,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("json marshal"), err)
+		return err
+	}
+	task := asynq.NewTask(models.TypeSubscribePlace, payload)
+
+	_, err = c.client.Enqueue(task)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("client Enqueue"), err)
+		return err
+	}
+
+	return nil
+}

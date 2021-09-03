@@ -118,13 +118,15 @@ func (d *DbManager) GetAdvertsByPlaceID(ctx context.Context, placeID int, lastAd
 	if lastAdvertID != 0 {
 		query = query.Where("advert_id < ?", lastAdvertID)
 	}
-	query = query.Relation("ReviewMedias", func(q *pg.Query) (*pg.Query, error) {
+	query = query.Relation("AdvertMedias", func(q *pg.Query) (*pg.Query, error) {
 		q = q.OrderExpr("advert_advert_medias.order ASC")
 		return q, nil
 	})
-	if err := query.Order("publish_datetime desc").
-		Limit(limit).
-		Select(); err != nil {
+	query = query.Order("publish_datetime desc")
+	if limit != 0 {
+		query = query.Limit(limit)
+	}
+	if err := query.Select(); err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("select from db"), err)
 		return nil, err
 	}
@@ -225,9 +227,11 @@ func (d *DbManager) GetReviewsByUserID(ctx context.Context, userID int, lastRevi
 		q = q.OrderExpr("review_review_medias.order ASC")
 		return q, nil
 	})
-	if err := query.Order("publish_datetime desc").
-		Limit(limit).
-		Select(); err != nil {
+	query = query.Order("publish_datetime desc")
+	if limit != 0 {
+		query = query.Limit(limit)
+	}
+	if err := query.Select(); err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("select from db"), err)
 		return nil, err
 	}
@@ -487,6 +491,36 @@ func (d *DbManager) GetUsersFeedOfUserID(ctx context.Context, userID int, lastUs
 func (d *DbManager) AddUsersFeed(ctx context.Context, usersFeed []models.UserFeed) error {
 	if _, err := d.db.Model(&usersFeed).Returning("*").Insert(); err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("insert usersFeed into db"), err)
+		return err
+	}
+	return nil
+}
+
+//func (d *DbManager) DeleteUsersFeedsByUserIDAndFollowedUserID(ctx context.Context, userID int, followedUserID int) error {
+//	userFeeds := models.UserFeed{
+//		UserID:         userID,
+//		FollowedUserID: followedUserID,
+//	}
+//	if _, err := d.db.Model(&userFeeds).Delete(); err != nil {
+//		err = wrapErr.NewWrapErr(fmt.Errorf("delete usersFeed with userID=%d followedUserID=%d from db", userID, followedUserID), err)
+//		return err
+//	}
+//	return nil
+//}
+
+func (d *DbManager) DeleteUsersFeeds(ctx context.Context, userFeeds models.UserFeed) error {
+	query := d.db.Model(&models.UserFeed{})
+	if userFeeds.UserID != 0 {
+		query = query.Where("user_id = ?", userFeeds.UserID)
+	}
+	if userFeeds.FollowedUserID != 0 {
+		query = query.Where("followed_user_id = ?", userFeeds.FollowedUserID)
+	}
+	if userFeeds.PlaceID != 0 {
+		query = query.Where("place_id = ?", userFeeds.PlaceID)
+	}
+	if _, err := query.Delete(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("delete usersFeed userFeeds=%+v from db", userFeeds), err)
 		return err
 	}
 	return nil

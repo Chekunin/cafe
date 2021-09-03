@@ -37,6 +37,8 @@ func NewWorkers(params NewWorkersParams) *Workers {
 
 	mux.HandleFunc(models.TypeNewAdvert, workers.HandleNewAdvertTask)
 	mux.HandleFunc(models.TypeNewReview, workers.HandleNewReviewTask)
+	mux.HandleFunc(models.TypeSubscribeUser, workers.HandleSubscribeUserTask)
+	mux.HandleFunc(models.TypeSubscribePlace, workers.HandleSubscribePlaceTask)
 
 	return &workers
 }
@@ -76,6 +78,7 @@ func (w *Workers) HandleNewAdvertTask(ctx context.Context, t *asynq.Task) error 
 		usersFeed = append(usersFeed, commonModels.UserFeed{
 			UserID:          v.UserID,
 			AdvertID:        advert.ID,
+			PlaceID:         advert.PlaceID,
 			PublishDatetime: advert.PublishDateTime,
 		})
 	}
@@ -113,6 +116,7 @@ func (w *Workers) HandleNewReviewTask(ctx context.Context, t *asynq.Task) error 
 		usersFeed = append(usersFeed, commonModels.UserFeed{
 			UserID:          v.FollowerUserID,
 			ReviewID:        review.ID,
+			FollowedUserID:  review.UserID,
 			PublishDatetime: review.PublishDateTime,
 		})
 	}
@@ -123,5 +127,67 @@ func (w *Workers) HandleNewReviewTask(ctx context.Context, t *asynq.Task) error 
 	}
 
 	fmt.Printf("finish execute task reviewID=%d\n", payload.ReviewID)
+	return nil
+}
+
+func (w *Workers) HandleSubscribeUserTask(ctx context.Context, t *asynq.Task) error {
+	var payload models.SubscribeUserTaskPayload
+	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
+		return err
+	}
+
+	reviews, err := w.dbManager.GetReviewsByUserID(ctx, payload.FollowedUserID, 0, 0)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetReviewsByUserID userID=%d", payload.FollowedUserID), err)
+		return err
+	}
+
+	usersFeed := make([]commonModels.UserFeed, 0, len(reviews))
+	for _, v := range reviews {
+		usersFeed = append(usersFeed, commonModels.UserFeed{
+			UserID:          payload.FollowerUserID,
+			ReviewID:        v.ID,
+			FollowedUserID:  v.UserID,
+			PublishDatetime: v.PublishDateTime,
+		})
+	}
+
+	if err := w.dbManager.AddUsersFeed(context.TODO(), usersFeed); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager AddUsersFeed"), err)
+		return err
+	}
+
+	fmt.Printf("finish execute task followerUserID=%d followedUserID=%d\n", payload.FollowerUserID, payload.FollowedUserID)
+	return nil
+}
+
+func (w *Workers) HandleSubscribePlaceTask(ctx context.Context, t *asynq.Task) error {
+	var payload models.SubscribePlaceTaskPayload
+	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
+		return err
+	}
+
+	adverts, err := w.dbManager.GetAdvertsByPlaceID(ctx, payload.PlaceID, 0, 0)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetAdvertsByPlaceID placeID=%d", payload.PlaceID), err)
+		return err
+	}
+
+	usersFeed := make([]commonModels.UserFeed, 0, len(adverts))
+	for _, v := range adverts {
+		usersFeed = append(usersFeed, commonModels.UserFeed{
+			UserID:          payload.UserID,
+			AdvertID:        v.ID,
+			PlaceID:         v.PlaceID,
+			PublishDatetime: v.PublishDateTime,
+		})
+	}
+
+	if err := w.dbManager.AddUsersFeed(context.TODO(), usersFeed); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager AddUsersFeed"), err)
+		return err
+	}
+
+	fmt.Printf("finish execute task userID=%d placeID=%d\n", payload.UserID, payload.PlaceID)
 	return nil
 }

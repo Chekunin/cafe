@@ -70,6 +70,7 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	router.POST("/activate-user-phone", r.handlerActivateUserPhone)
 	router.GET("/feed-by-user-id/:user_id", r.handlerGetFeedOfUserID)
 	router.POST("/users-feeds", r.handlerAddUsersFeed)
+	router.DELETE("/users-feeds", r.handlerDeleteUsersFeed)
 
 	router.POST("/add-feed-advert-queue", r.handlerAddFeedAdvertQueue)
 	router.POST("/poll-feed-advert-queue", r.handlerPollFeedAdvertQueue)
@@ -783,6 +784,24 @@ func (r *rest) handlerAddUsersFeed(c *gin.Context) {
 	err := r.Usecase.AddUsersFeed(c.Request.Context(), req)
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetUsersFeedOfUserID"), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(req))
+}
+
+func (r *rest) handlerDeleteUsersFeed(c *gin.Context) {
+	var req models.UserFeed
+	dec := gob.NewDecoder(c.Request.Body)
+	if err := dec.Decode(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("decode data"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	err := r.Usecase.DeleteUsersFeed(c.Request.Context(), req)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase DeleteUsersFeed"), err)
 		c.AbortWithError(GetHttpCode(err), err)
 		return
 	}

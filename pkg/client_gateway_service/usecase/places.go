@@ -175,6 +175,11 @@ func (u *Usecase) SubscribeToPlace(ctx context.Context, userID int, placeID int)
 		return err
 	}
 
+	if err := u.feedQueueClient.AddSubscribePlace(userID, placeID); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("feedQueueClient AddSubscribePlace userID=%d placeID=%d", userID, placeID), err)
+		catcherr.AsWarning().Catch(err)
+	}
+
 	// todo: здесь надо сообщать всем остальным (например, nsi), что произошло изменение состояние,
 	//  можно сообщать через шину nats.
 
@@ -189,6 +194,15 @@ func (u *Usecase) UnsubscribeFromPlace(ctx context.Context, userID int, placeID 
 
 	if err := u.dbManager.DeletePlaceSubscription(ctx, userPlaceSubscription); err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager DeletePlaceSubscription userPlaceSubscription = %+v", userPlaceSubscription), err)
+		return err
+	}
+
+	userFeed := models.UserFeed{
+		UserID:  userID,
+		PlaceID: placeID,
+	}
+	if err := u.dbManager.DeleteUsersFeeds(ctx, userFeed); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager DeleteUsersFeeds userFeed=%+v", userFeed), err)
 		return err
 	}
 

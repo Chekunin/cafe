@@ -51,6 +51,8 @@ type IDBManager interface {
 	ActivateUserPhone(ctx context.Context, userPhoneCodeID int) error
 	GetUsersFeedOfUserID(ctx context.Context, userID int, lastUserFeedID int, limit int) ([]models.UserFeed, error)
 	AddUsersFeed(ctx context.Context, usersFeed []models.UserFeed) error
+	//DeleteUsersFeedsByUserIDAndFollowedUserID(ctx context.Context, userID int, followedUserID int) error
+	DeleteUsersFeeds(ctx context.Context, userFeeds models.UserFeed) error
 	GetUserPlaceSubscriptionsByPlaceID(ctx context.Context, placeID int) ([]models.UserPlaceSubscription, error)
 	GetUsersPlacesSubscriptionsByUserID(ctx context.Context, userID int) ([]models.UserPlaceSubscription, error)
 

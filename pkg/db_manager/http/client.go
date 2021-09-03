@@ -717,6 +717,20 @@ func (h HttpDbManager) AddUsersFeed(ctx context.Context, usersFeed []models.User
 	return nil
 }
 
+func (h HttpDbManager) DeleteUsersFeeds(ctx context.Context, userFeeds models.UserFeed) error {
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:     ctx,
+		Method:  "DELETE",
+		Url:     fmt.Sprintf("/users-feeds"),
+		Payload: userFeeds,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return err
+	}
+	return nil
+}
+
 func (h HttpDbManager) AddFeedAdvertQueue(ctx context.Context, feedAdvertQueue *models.FeedAdvertQueue) error {
 	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
 		Ctx:     ctx,

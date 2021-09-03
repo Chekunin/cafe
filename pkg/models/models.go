@@ -244,6 +244,8 @@ type UserFeed struct {
 	AdvertID        int       `pg:"advert_id" json:"advert_id" api:"advert_id"`
 	ReviewID        int       `pg:"review_id" json:"review_id" api:"review_id"`
 	PublishDatetime time.Time `pg:"publish_datetime" json:"publish_datetime" api:"publish_datetime"`
+	FollowedUserID  int       `pg:"followed_user_id" json:"followed_user_id"`
+	PlaceID         int       `pg:"place_id" json:"place_id"`
 
 	Advert *Advert `pg:"fk:advert_id" api:"advert"`
 	Review *Review `pg:"fk:review_id" api:"review"`

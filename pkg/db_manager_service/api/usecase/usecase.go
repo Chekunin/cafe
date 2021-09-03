@@ -405,6 +405,15 @@ func (u *Usecase) AddUsersFeed(ctx context.Context, usersFeeds []models.UserFeed
 	return nil
 }
 
+func (u *Usecase) DeleteUsersFeed(ctx context.Context, usersFeeds models.UserFeed) error {
+	err := u.dbManager.DeleteUsersFeeds(ctx, usersFeeds)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager DeleteUsersFeeds"), err)
+		return err
+	}
+	return nil
+}
+
 func (u *Usecase) AddFeedAdvertQueue(ctx context.Context, feedAdvertQueue models.FeedAdvertQueue) (models.FeedAdvertQueue, error) {
 	err := u.dbManager.AddFeedAdvertQueue(ctx, &feedAdvertQueue)
 	if err != nil {

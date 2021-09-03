@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"cafe/pkg/common/catcherr"
 	"cafe/pkg/models"
 	"context"
 	"fmt"
@@ -19,6 +20,11 @@ func (u *Usecase) SubscribeToUser(ctx context.Context, followerUserID int, follo
 		return err
 	}
 
+	if err := u.feedQueueClient.AddSubscribeUser(followerUserID, followedUserID); err != nil {
+		err = wraperr.NewWrapErr(fmt.Errorf("feedQueueClient AddSubscribeUser followerUserID=%d followedUserID=%d", followerUserID, followedUserID), err)
+		catcherr.AsWarning().Catch(err)
+	}
+
 	// todo: здесь надо сообщать всем остальным (например, nsi), что произошло изменение состояние,
 	//  можно сообщать через шину nats.
 
@@ -33,6 +39,15 @@ func (u *Usecase) UnsubscribeFromUser(ctx context.Context, followerUserID int, f
 
 	if err := u.dbManager.DeleteUserSubscription(ctx, userSubscription); err != nil {
 		err = wraperr.NewWrapErr(fmt.Errorf("dbManager DeleteUserSubscription userSubscription = %+v", userSubscription), err)
+		return err
+	}
+
+	userFeed := models.UserFeed{
+		UserID:         followerUserID,
+		FollowedUserID: followedUserID,
+	}
+	if err := u.dbManager.DeleteUsersFeeds(ctx, userFeed); err != nil {
+		err = wraperr.NewWrapErr(fmt.Errorf("dbManager DeleteUsersFeeds userFeed=%+v", userFeed), err)
 		return err
 	}
 

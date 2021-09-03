@@ -184,11 +184,13 @@ create table main.users_feeds (
                                   user_id integer references main.users(user_id),
                                   advert_id integer references main.adverts(advert_id),
                                   review_id integer references main.reviews(review_id),
-                                  publish_datetime timestamptz not null
+                                  publish_datetime timestamptz not null,
+                                  followed_user_id int references main.users(user_id),
+                                  place_id int references main.places(place_id)
 );
 
 CREATE INDEX ON main.users_feeds (user_id, publish_datetime DESC);
-CREATE UNIQUE INDEX ON main.users_feeds (user_id, advert_id, review_id);
+CREATE UNIQUE INDEX ON main.users_feeds (user_id, coalesce(advert_id, 0), coalesce(review_id, 0));
 
 create table main.feed_advert_queue (
                                         advert_id integer primary key references main.adverts(advert_id),
