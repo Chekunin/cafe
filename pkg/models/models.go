@@ -282,3 +282,48 @@ type UserPlaceSubscription struct {
 	UserID  int `pg:"user_id,pk" json:"user_id"`
 	PlaceID int `pg:"place_id,pk" json:"place_id"`
 }
+
+type PlaceMenuCategory struct {
+	tableName struct{} `pg:"main.place_menu_categories,discard_unknown_columns"`
+
+	ID              int       `pg:"place_menu_category_id,pk" json:"place_menu_category_id" api:"place_menu_category_id"`
+	PlaceID         int       `pg:"place_id" json:"place_id" api:"place_id"`
+	CategoryName    string    `pg:"category_name" json:"category_name" api:"category_name"`
+	Order           int       `pg:"order" json:"order" api:"order"`
+	LoadDateTime    time.Time `pg:"load_datetime" json:"load_datetime" api:"load_datetime"`
+	PublishDateTime time.Time `pg:"publish_datetime" json:"publish_datetime" api:"publish_datetime"`
+
+	PlaceMenuItems []PlaceMenuItem `pg:"rel:has-many" json:"place_menu_items" api:"place_menu_items"`
+}
+
+type PlaceMenuItemMedia struct {
+	tableName struct{} `pg:"main.place_menu_item_medias,discard_unknown_columns"`
+
+	ID             int       `pg:"place_menu_item_media_id,pk" json:"place_menu_item_media_id" api:"place_menu_item_media_id"`
+	RestaurateurID int       `pg:"restaurateur_id" json:"restaurateur_id" api:"restaurateur_id"`
+	MediaPath      string    `pg:"media_path" json:"media_path" api:"media_path"`
+	MediaType      string    `pg:"media_type" json:"media_type" api:"media_type"`
+	LoadDateTime   time.Time `pg:"load_datetime" json:"load_datetime" api:"load_datetime"`
+}
+
+type PlaceMenuItem struct {
+	tableName struct{} `pg:"main.place_menu_items,discard_unknown_columns"`
+
+	ID                   int       `pg:"place_menu_item_id,pk" json:"place_menu_item_id" api:"place_menu_item_id"`
+	Name                 string    `pg:"name" json:"name" api:"name"`
+	Description          string    `pg:"description" json:"description" api:"description"`
+	Weight               int       `pg:"weight" json:"weight" api:"weight"`
+	Price                int       `pg:"price" json:"price" api:"price"`
+	PlaceMenuItemMediaID int       `pg:"place_menu_item_media_id" json:"place_menu_item_media_id" api:"place_menu_item_media_id"`
+	PlaceMenuCategoryID  int       `pg:"place_menu_category_id" json:"place_menu_category_id" api:"place_menu_category_id"`
+	Order                int       `pg:"order" json:"order" api:"order"`
+	LoadDateTime         time.Time `pg:"load_datetime" json:"load_datetime" api:"load_datetime"`
+	PublishDateTime      time.Time `pg:"publish_datetime" json:"publish_datetime" api:"publish_datetime"`
+
+	PlaceMenuItemMedia *PlaceMenuItemMedia `pg:"fk:place_menu_item_media_id" json:"place_menu_item_media" api:"place_menu_item_media"`
+}
+
+type PlaceMenu struct {
+	PlaceID             int                 `json:"place_id" api:"place_id"`
+	PlaceMenuCategories []PlaceMenuCategory `json:"place_menu_categories" api:"place_menu_categories"`
+}

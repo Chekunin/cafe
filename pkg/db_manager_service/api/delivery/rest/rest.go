@@ -83,6 +83,8 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	router.POST("/add-feed-user-subscribe-queue", r.handlerAddFeedUserSubscribeQueue)
 	router.POST("/poll-feed-user-subscribe-queue", r.handlerPollFeedUserSubscribeQueue)
 	router.POST("/complete-feed-user-subscribe-queue/:follower_user_id/:followed_user_id", r.handlerCompleteFeedUserSubscribeQueue)
+
+	router.GET("/places/:place_id/menu", r.handlerGetPlaceMenu)
 }
 
 func (r *rest) handlerGetAllPlaces(c *gin.Context) {
@@ -948,4 +950,22 @@ func (r *rest) handlerCompleteFeedUserSubscribeQueue(c *gin.Context) {
 		return
 	}
 	c.Status(http.StatusOK)
+}
+
+func (r *rest) handlerGetPlaceMenu(c *gin.Context) {
+	var req struct {
+		PlaceID int `uri:"place_id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	resp, err := r.Usecase.GetPlaceMenu(c.Request.Context(), req.PlaceID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetPlaceMenu placeID=%d", req.PlaceID), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+	c.Data(http.StatusOK, "application/x-gob", utils.ToGobBytes(resp))
 }

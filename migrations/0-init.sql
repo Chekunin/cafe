@@ -220,4 +220,41 @@ create table main.users_places_subscriptions (
                                    place_id int references main.places(place_id),
                                    primary key (user_id, place_id)
 );
+
+
+create table main.place_menu_categories (
+                                            place_menu_category_id serial primary key,
+                                            place_id int references main.places(place_id) not null,
+                                            category_name varchar(255) not null,
+                                            "order" int not null,
+                                            load_datetime timestamptz not null default now(),
+                                            publish_datetime timestamptz not null default now()
+);
+
+CREATE INDEX ON main.place_menu_categories (place_id, "order");
+CREATE INDEX ON main.place_menu_items (publish_datetime);
+
+create table main.place_menu_item_medias (
+                                             place_menu_item_media_id serial primary key,
+                                             restaurateur_id int references main.restaurateurs(restaurateur_id) not null,
+                                             media_type main.media_type not null,
+                                             media_path varchar not null,
+                                             load_datetime timestamptz not null default now()
+);
+
+create table main.place_menu_items (
+                                       place_menu_item_id serial primary key,
+                                       name varchar(255) not null,
+                                       description text,
+                                       weight int,
+                                       price int,
+                                       place_menu_item_media_id int references main.place_menu_item_medias(place_menu_item_media_id),
+                                       place_menu_category_id int references main.place_menu_categories(place_menu_category_id) not null,
+                                       "order" int not null,
+                                       load_datetime timestamptz not null default now(),
+                                       publish_datetime timestamptz not null default now()
+);
+
+CREATE INDEX ON main.place_menu_items (place_menu_category_id, "order");
+
 -- +migrate Down

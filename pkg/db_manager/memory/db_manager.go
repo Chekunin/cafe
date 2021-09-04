@@ -666,3 +666,27 @@ func (d *DbManager) CompleteFeedUserSubscribeQueue(ctx context.Context, follower
 	}
 	return nil
 }
+
+func (d *DbManager) GetFullPlaceMenu(ctx context.Context, placeID int) (models.PlaceMenu, error) {
+	placeMenu := models.PlaceMenu{
+		PlaceID:             placeID,
+		PlaceMenuCategories: nil,
+	}
+
+	query := d.db.Model(&placeMenu.PlaceMenuCategories).
+		Where("place_id = ?", placeID).
+		Order("order")
+
+	query.Relation("PlaceMenuItems", func(query *orm.Query) (*orm.Query, error) {
+		query = query.Relation("PlaceMenuItemMedia")
+		query = query.Where("publish_datetime <= now()").Order("order")
+		return query, nil
+	})
+
+	if err := query.Select(); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("select place menu from db"), err)
+		return models.PlaceMenu{}, err
+	}
+
+	return placeMenu, nil
+}

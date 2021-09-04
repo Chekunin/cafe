@@ -859,3 +859,18 @@ func (h HttpDbManager) CompleteFeedUserSubscribeQueue(ctx context.Context, follo
 	}
 	return nil
 }
+
+func (h HttpDbManager) GetFullPlaceMenu(ctx context.Context, placeID int) (models.PlaceMenu, error) {
+	var resp models.PlaceMenu
+	_, err := h.httpClient.DoRequestWithOptions(http.RequestOptions{
+		Ctx:    ctx,
+		Method: "GET",
+		Url:    fmt.Sprintf("/places/%d/menu", placeID),
+		Result: &resp,
+	})
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("do http request"), err)
+		return models.PlaceMenu{}, err
+	}
+	return resp, nil
+}

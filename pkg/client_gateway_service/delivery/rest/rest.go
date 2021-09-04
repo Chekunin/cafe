@@ -45,6 +45,8 @@ func (r *rest) routes(router *gin.RouterGroup) {
 	// записи конкретного заведения
 	router.GET("/place/:id/posts", r.handlerGetPlaceAdvertsByPlaceID)
 
+	router.GET("/places/:id/menu", r.handlerGetPlaceMenu)
+
 	authorized := router.Group("/")
 	authorized.Use(r.authMiddleware())
 	authorized.POST("/auth/logout", r.handlerLogout)

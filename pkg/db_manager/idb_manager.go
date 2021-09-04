@@ -67,4 +67,6 @@ type IDBManager interface {
 	AddFeedUserSubscribeQueue(ctx context.Context, feedUserSubscribeQueue *models.FeedUserSubscribeQueue) error
 	PollFeedUserSubscribeQueue(ctx context.Context) (models.FeedUserSubscribeQueue, error)
 	CompleteFeedUserSubscribeQueue(ctx context.Context, followerUserID int, followedUserID int) error
+
+	GetFullPlaceMenu(ctx context.Context, placeID int) (models.PlaceMenu, error)
 }

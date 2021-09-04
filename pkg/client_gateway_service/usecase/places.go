@@ -218,3 +218,22 @@ func (u *Usecase) GetPlaceSubscriptionsByUserID(ctx context.Context, userID int)
 
 	return userSubscriptions, nil
 }
+
+func (u *Usecase) GetPlaceMenu(ctx context.Context, placeID int) (models.PlaceMenu, error) {
+	placeMenu := models.PlaceMenu{
+		PlaceID: placeID,
+	}
+
+	// сначала надо обращаться в кеш о проверять есть ли там уже полностью готовый объект меню
+	// если нет, то собираем его из БД и кладём в кеш
+
+	// здесь достаём все категории меню
+	// потом заполняем эти категории
+	placeMenu, err := u.dbManager.GetFullPlaceMenu(ctx, placeID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetFullPlaceMenu placeID=%d", placeID), err)
+		return models.PlaceMenu{}, err
+	}
+
+	return placeMenu, nil
+}

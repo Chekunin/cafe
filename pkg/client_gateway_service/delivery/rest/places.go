@@ -385,3 +385,23 @@ func (r *rest) handlerUnsubscribeFromPlace(c *gin.Context) {
 
 	c.Status(http.StatusOK)
 }
+
+func (r *rest) handlerGetPlaceMenu(c *gin.Context) {
+	var req struct {
+		PlaceID int `uri:"id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&req); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := r.usecase.GetPlaceMenu(c.Request.Context(), req.PlaceID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetPlaceMenu placeID=%d", req.PlaceID), err)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+
+	c.JSON(http.StatusOK, models.Convert(resp, modelTag))
+}

@@ -491,3 +491,12 @@ func (u *Usecase) CompleteFeedUserSubscribeQueue(ctx context.Context, followerUs
 	}
 	return nil
 }
+
+func (u *Usecase) GetPlaceMenu(ctx context.Context, placeID int) (models.PlaceMenu, error) {
+	placeMenu, err := u.dbManager.GetFullPlaceMenu(ctx, placeID)
+	if err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("dbManager GetFullPlaceMenu placeID=%d", placeID), err)
+		return models.PlaceMenu{}, err
+	}
+	return placeMenu, nil
+}
