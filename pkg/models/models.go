@@ -18,9 +18,9 @@ type Mark string
 
 //Mark enum
 const (
-	MarkExcellent MediaType = "excellent"
-	MarkGood      MediaType = "good"
-	MarkBad       MediaType = "bad"
+	MarkExcellent Mark = "excellent"
+	MarkGood      Mark = "good"
+	MarkBad       Mark = "bad"
 )
 
 type Place struct {
@@ -48,7 +48,7 @@ type PlaceMedia struct {
 	ID              int       `pg:"place_media_id,pk" json:"place_media_id" api:"place_media_id"`
 	PlaceID         int       `pg:"place_id" json:"place_id" api:"place_id"`
 	MediaPath       string    `pg:"media_path" json:"media_path" api:"media_path"`
-	MediaType       string    `pg:"media_type" json:"media_type" api:"media_type"`
+	MediaType       MediaType `pg:"media_type" json:"media_type" api:"media_type" enums:"photo,video"`
 	Comment         string    `pg:"comment" json:"comment" api:"comment"`
 	PublishDateTime time.Time `pg:"publish_datetime" json:"publish_datetime" api:"publish_datetime"`
 }
@@ -108,11 +108,11 @@ type Advert struct {
 type AdvertMedia struct {
 	tableName struct{} `pg:"main.advert_medias,discard_unknown_columns"`
 
-	ID             int    `pg:"advert_media_id,pk" json:"advert_media_id" api:"advert_media_id"`
-	PlaceID        int    `pg:"place_id" json:"place_id" api:"place_id"`
-	RestaurateurID int    `pg:"restaurateur_id" json:"restaurateur_id"`
-	MediaType      string `pg:"media_type" json:"media_type" api:"media_type"`
-	MediaPath      string `pg:"media_path" json:"media_path" api:"media_path"`
+	ID             int       `pg:"advert_media_id,pk" json:"advert_media_id" api:"advert_media_id"`
+	PlaceID        int       `pg:"place_id" json:"place_id" api:"place_id"`
+	RestaurateurID int       `pg:"restaurateur_id" json:"restaurateur_id"`
+	MediaType      MediaType `pg:"media_type" json:"media_type" api:"media_type" enums:"photo,video"`
+	MediaPath      string    `pg:"media_path" json:"media_path" api:"media_path"`
 }
 
 type AdvertAdvertMedias struct {
@@ -167,7 +167,7 @@ type ReviewMedia struct {
 
 	ID        int       `pg:"review_media_id,pk" json:"review_media_id" api:"review_media_id"`
 	UserID    int       `pg:"user_id" json:"user_id"`
-	MediaType MediaType `pg:"media_type" json:"media_type" api:"media_type"`
+	MediaType MediaType `pg:"media_type" json:"media_type" api:"media_type" enums:"photo,video"`
 	MediaPath string    `pg:"media_path" json:"media_path"`
 }
 
@@ -302,7 +302,7 @@ type PlaceMenuItemMedia struct {
 	ID             int       `pg:"place_menu_item_media_id,pk" json:"place_menu_item_media_id" api:"place_menu_item_media_id"`
 	RestaurateurID int       `pg:"restaurateur_id" json:"restaurateur_id" api:"restaurateur_id"`
 	MediaPath      string    `pg:"media_path" json:"media_path" api:"media_path"`
-	MediaType      string    `pg:"media_type" json:"media_type" api:"media_type"`
+	MediaType      MediaType `pg:"media_type" json:"media_type" api:"media_type" enums:"photo,video"`
 	LoadDateTime   time.Time `pg:"load_datetime" json:"load_datetime" api:"load_datetime"`
 }
 

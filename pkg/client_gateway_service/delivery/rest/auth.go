@@ -9,6 +9,14 @@ import (
 	"net/http"
 )
 
+// Login godoc
+// @Summary Логин
+// @Tags Авторизация
+// @Accept json
+// @Produce json
+// @Param login body schema.ReqLogin true "Login data"
+// @Success 200 {object} schema.RespLogin
+// @Router /auth/login [post]
 func (r *rest) handlerLogin(c *gin.Context) {
 	var req schema.ReqLogin
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -32,6 +40,14 @@ func (r *rest) handlerLogin(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// Logout godoc
+// @Summary Деавторизация
+// @Tags Авторизация
+// @Accept json
+// @Param Authorization header string true "Authorization token"
+// @Produce json
+// @Success 200
+// @Router /auth/logout [post]
 func (r *rest) handlerLogout(c *gin.Context) {
 	token, _ := common.FromContextToken(c.Request.Context())
 
@@ -44,6 +60,14 @@ func (r *rest) handlerLogout(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+// Refresh token godoc
+// @Summary Обновление токена
+// @Tags Авторизация
+// @Accept json
+// @Produce json
+// @Param login body schema.ReqRefreshToken true "Refresh token data"
+// @Success 200 {object} schema.RespRefreshToken
+// @Router /auth/refresh-token [post]
 func (r *rest) handlerRefreshToken(c *gin.Context) {
 	var req schema.ReqRefreshToken
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -67,6 +91,14 @@ func (r *rest) handlerRefreshToken(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// Signup godoc
+// @Summary Регистрация пользователя
+// @Tags Авторизация
+// @Accept json
+// @Produce json
+// @Param login body schema.ReqSignUp true "Signup data"
+// @Success 200 {object} models.User
+// @Router /auth/signup [post]
 func (r *rest) handlerSignUp(c *gin.Context) {
 	var req schema.ReqSignUp
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -85,6 +117,14 @@ func (r *rest) handlerSignUp(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
+// ApprovePhone godoc
+// @Summary Подтверждение номера телефона
+// @Tags Авторизация
+// @Accept json
+// @Produce json
+// @Param login body schema.ApprovePhone true "ApprovePhone data"
+// @Success 200
+// @Router /auth/approve-phone [post]
 func (r *rest) handlerApprovePhone(c *gin.Context) {
 	var req schema.ApprovePhone
 	if err := c.ShouldBindJSON(&req); err != nil {

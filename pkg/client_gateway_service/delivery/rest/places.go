@@ -3,6 +3,7 @@ package rest
 import (
 	"bytes"
 	"cafe/pkg/client_gateway_service/delivery/rest/schema"
+	errs "cafe/pkg/client_gateway_service/errors"
 	"cafe/pkg/client_sso/models"
 	"cafe/pkg/common"
 	"fmt"
@@ -11,6 +12,16 @@ import (
 	"net/http"
 )
 
+// EvaluatePlace godoc
+// @Summary Оценить заведение
+// @Tags Заведения
+// @Accept json
+// @Param evaluatePlace body schema.ReqEvaluatePlace true "evaluation place data"
+// @Param Authorization header string true "Authorization token"
+// @Param id path int true "id заведения"
+// @Produce json
+// @Success 200 {object} models.PlaceEvaluation
+// @Router /places/{id}/evaluation [post]
 func (r *rest) handlerEvaluatePlace(c *gin.Context) {
 	var req schema.ReqEvaluatePlace
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -47,6 +58,15 @@ func (r *rest) handlerEvaluatePlace(c *gin.Context) {
 	c.JSON(http.StatusOK, placeEvaluation)
 }
 
+// GetPlaceEvaluation godoc
+// @Summary Достать оценку заведения от данного пользователя
+// @Tags Заведения
+// @Accept json
+// @Param Authorization header string true "Authorization token"
+// @Param id path int true "id заведения"
+// @Produce json
+// @Success 200 {object} models.PlaceEvaluation
+// @Router /places/{id}/evaluation [get]
 func (r *rest) handlerGetPlaceEvaluation(c *gin.Context) {
 	var reqUri struct {
 		PlaceID int `uri:"id" binding:"required"`
@@ -111,6 +131,16 @@ func (r *rest) handlerGetPlaceEvaluations(c *gin.Context) {
 	panic("implement me") // todo: под вопросом, нужен ли вообще метод
 }
 
+// AddPlaceReview godoc
+// @Summary Загрузить медиа-файл для отзыва заведения
+// @Tags Заведения
+// @Accept json
+// @Param id path int true "place id"
+// @Param reviewMedia body schema.ReqAddPlaceReview true "place review data"
+// @Param Authorization header string true "Authorization token"
+// @Produce json
+// @Success 200 {object} models.ReviewMedia
+// @Router /places/{id}/review [post]
 func (r *rest) handlerAddPlaceReview(c *gin.Context) {
 	var req schema.ReqAddPlaceReview
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -145,6 +175,15 @@ func (r *rest) handlerAddPlaceReview(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Convert(review, modelTag))
 }
 
+// AddPlaceReviewMedia godoc
+// @Summary Загрузить медиа-файл для отзыва заведения
+// @Tags Заведения
+// @Accept multipart/form-data
+// @Param media formData file true "media file"
+// @Param Authorization header string true "Authorization token"
+// @Produce json
+// @Success 200 {object} models.ReviewMedia
+// @Router /place-review-media [post]
 func (r *rest) handlerAddPlaceReviewMedia(c *gin.Context) {
 	multipartForm, err := c.MultipartForm()
 	if err != nil {
@@ -190,6 +229,13 @@ func (r *rest) handlerAddPlaceReviewMedia(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Convert(reviewMedia, modelTag))
 }
 
+// PlaceReviewMediaData godoc
+// @Summary Медиа-файл отзыва
+// @Tags Заведения
+// @Produce json
+// @Param id path int true "review media id"
+// @Success 200 {array} byte
+// @Router /place-review-medias/{id}/data [get]
 func (r *rest) handlerGetPlaceReviewMediaData(c *gin.Context) {
 	var reqUri struct {
 		ReviewMediaID int `uri:"id" binding:"required"`
@@ -218,6 +264,12 @@ func (r *rest) handlerGetPlaceReviewMediaData(c *gin.Context) {
 	c.Data(http.StatusOK, contentType, buf.Bytes())
 }
 
+// Places godoc
+// @Summary Критерии оценивания заведения
+// @Tags Заведения
+// @Produce json
+// @Success 200 {array} models.EvaluationCriterion
+// @Router /place-evaluation-criterions [get]
 func (r *rest) handlerGetPlaceEvaluationCriterions(c *gin.Context) {
 	resp, err := r.usecase.GetPlaceEvaluationCriterions(c.Request.Context())
 	if err != nil {
@@ -228,7 +280,25 @@ func (r *rest) handlerGetPlaceEvaluationCriterions(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Convert(resp, modelTag))
 }
 
+// GetOwnPlacesReviews godoc
+// @Summary Список отзывов данного пользователя
+// @Tags Пользователи
+// @Accept json
+// @Param Authorization header string true "Authorization token"
+// @Param id path int true "User ID"
+// @Produce json
+// @Success 200 {array} models.Review
+// @Router /users/{id}/place-reviews [get]
 func (r *rest) handlerGetOwnPlacesReviews(c *gin.Context) {
+	var reqUri struct {
+		UserID int `uri:"id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&reqUri); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
 	userID, has := common.FromContextUserID(c.Request.Context())
 	if !has {
 		err := wrapErr.NewWrapErr(fmt.Errorf("userID is not in context"), nil)
@@ -246,6 +316,12 @@ func (r *rest) handlerGetOwnPlacesReviews(c *gin.Context) {
 		return
 	}
 
+	if reqUri.UserID != userID {
+		err := wrapErr.NewWrapErr(fmt.Errorf("user id from path=%d and from token=%d", reqUri.UserID, userID), errs.ErrorForbidden)
+		c.AbortWithError(GetHttpCode(err), err)
+		return
+	}
+
 	resp, err := r.usecase.GetPlacesReviewsOfUserID(c.Request.Context(), userID, reqQuery.LastReviewID, reqQuery.Limit)
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetPlacesReviewsOfUserID userID=%d", userID), err)
@@ -256,6 +332,15 @@ func (r *rest) handlerGetOwnPlacesReviews(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Convert(resp, modelTag))
 }
 
+// GetPlacesReviewsByUserID godoc
+// @Summary Отзывы конкретного пользователя
+// @Tags Пользователи
+// @Produce json
+// @Param id path int true "id пользователя"
+// @Param last_review_id query int false "id последнего полученного отзыва данного пользователя"
+// @Param limit query int false "лимит отдаваемых записей" minimum(1) maximum(50) default(20)
+// @Success 200 {array} models.Review
+// @Router /users/{id}/posts [get]
 func (r *rest) handlerGetPlacesReviewsByUserID(c *gin.Context) {
 	var reqUri struct {
 		UserID int `uri:"id" binding:"required"`
@@ -286,6 +371,15 @@ func (r *rest) handlerGetPlacesReviewsByUserID(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Convert(resp, modelTag))
 }
 
+// GetPlaceAdvertsByPlaceID godoc
+// @Summary Объявления заведения
+// @Tags Заведения
+// @Produce json
+// @Param id path int true "id заведения"
+// @Param last_review_id query int false "id последнего полученного объявления данного заведения"
+// @Param limit query int false "лимит отдаваемых записей" minimum(1) maximum(50) default(20)
+// @Success 200 {array} models.Advert
+// @Router /places/{id}/posts [get]
 func (r *rest) handlerGetPlaceAdvertsByPlaceID(c *gin.Context) {
 	var reqUri struct {
 		PlaceID int `uri:"id" binding:"required"`
@@ -297,8 +391,8 @@ func (r *rest) handlerGetPlaceAdvertsByPlaceID(c *gin.Context) {
 	}
 
 	var reqQuery struct {
-		LastUserFeedID int `form:"last_user_feed_id"`
-		Limit          int `form:"limit,default=20" binding:"gte=0,lte=50"`
+		LastAdvertID int `form:"last_advert_id"`
+		Limit        int `form:"limit,default=20" binding:"gte=0,lte=50"`
 	}
 	if err := c.ShouldBindQuery(&reqQuery); err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from query"), err)
@@ -306,7 +400,7 @@ func (r *rest) handlerGetPlaceAdvertsByPlaceID(c *gin.Context) {
 		return
 	}
 
-	resp, err := r.usecase.GetPlaceAdvertsByPlaceID(c.Request.Context(), reqUri.PlaceID, reqQuery.LastUserFeedID, reqQuery.Limit)
+	resp, err := r.usecase.GetPlaceAdvertsByPlaceID(c.Request.Context(), reqUri.PlaceID, reqQuery.LastAdvertID, reqQuery.Limit)
 	if err != nil {
 		err = wrapErr.NewWrapErr(fmt.Errorf("usecase GetPlaceAdvertsByPlaceID placeID=%d", reqUri.PlaceID), err)
 		c.AbortWithError(GetHttpCode(err), err)
@@ -316,11 +410,35 @@ func (r *rest) handlerGetPlaceAdvertsByPlaceID(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Convert(resp, modelTag))
 }
 
+// GetPlaceSubscriptions godoc
+// @Summary Список заведений, на которые подписан данный пользователь
+// @Tags Пользователи
+// @Accept json
+// @Param Authorization header string true "Authorization token"
+// @Param id path int true "User ID"
+// @Produce json
+// @Success 200 {array} models.UserPlaceSubscription
+// @Router /users/{id}/place-subscriptions [get]
 func (r *rest) handlerGetPlaceSubscriptions(c *gin.Context) {
+	var reqUri struct {
+		UserID int `uri:"id" binding:"required"`
+	}
+	if err := c.ShouldBindUri(&reqUri); err != nil {
+		err = wrapErr.NewWrapErr(fmt.Errorf("binding data from uri"), err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
 	userID, has := common.FromContextUserID(c.Request.Context())
 	if !has {
 		err := wrapErr.NewWrapErr(fmt.Errorf("userID is not in context"), nil)
 		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	if reqUri.UserID != userID {
+		err := wrapErr.NewWrapErr(fmt.Errorf("user id from path=%d and from token=%d", reqUri.UserID, userID), errs.ErrorForbidden)
+		c.AbortWithError(GetHttpCode(err), err)
 		return
 	}
 
@@ -334,6 +452,15 @@ func (r *rest) handlerGetPlaceSubscriptions(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// SubscribeToPlace godoc
+// @Summary Подписаться на заведение
+// @Tags Пользователи
+// @Accept json
+// @Param Authorization header string true "Authorization token"
+// @Param id path int true "id заведения"
+// @Produce json
+// @Success 200
+// @Router /places/{id}/subscribe [post]
 func (r *rest) handlerSubscribeToPlace(c *gin.Context) {
 	var req struct {
 		PlaceID int `uri:"id" binding:"required"`
@@ -360,6 +487,15 @@ func (r *rest) handlerSubscribeToPlace(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+// UnsubscribeFromPlace godoc
+// @Summary Отписаться от заведения
+// @Tags Заведения
+// @Accept json
+// @Param Authorization header string true "Authorization token"
+// @Param id path int true "id заведения"
+// @Produce json
+// @Success 200
+// @Router /places/{id}/unsubscribe [post]
 func (r *rest) handlerUnsubscribeFromPlace(c *gin.Context) {
 	var req struct {
 		PlaceID int `uri:"id" binding:"required"`
@@ -386,6 +522,13 @@ func (r *rest) handlerUnsubscribeFromPlace(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+// GetPlaceMenu godoc
+// @Summary Меню заведения
+// @Tags Заведения
+// @Produce json
+// @Param id path int true "id заведения"
+// @Success 200 {array} models.PlaceMenu
+// @Router /places/{id}/menu [get]
 func (r *rest) handlerGetPlaceMenu(c *gin.Context) {
 	var req struct {
 		PlaceID int `uri:"id" binding:"required"`

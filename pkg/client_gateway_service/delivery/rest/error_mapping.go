@@ -21,4 +21,5 @@ var errMappingToHttpCode = map[int]int{
 	errs.ErrorPhoneNotCorrect.Code:     400,
 	errs.ErrorPhoneCodeNotCorrect.Code: 400,
 	errs.ErrorFieldNotUnique.Code:      400,
+	errs.ErrorForbidden.Code:           403,
 }

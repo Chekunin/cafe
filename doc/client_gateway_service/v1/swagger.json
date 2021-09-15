@@ -1,0 +1,1462 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Gateway service for simple users",
+        "title": "Client gateway service",
+        "contact": {},
+        "version": "1.0"
+    },
+    "basePath": "/client-gateway/v1",
+    "paths": {
+        "/auth/approve-phone": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Авторизация"
+                ],
+                "summary": "Подтверждение номера телефона",
+                "parameters": [
+                    {
+                        "description": "ApprovePhone data",
+                        "name": "login",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.ApprovePhone"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Авторизация"
+                ],
+                "summary": "Логин",
+                "parameters": [
+                    {
+                        "description": "Login data",
+                        "name": "login",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.ReqLogin"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schema.RespLogin"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Авторизация"
+                ],
+                "summary": "Деавторизация",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/auth/refresh-token": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Авторизация"
+                ],
+                "summary": "Обновление токена",
+                "parameters": [
+                    {
+                        "description": "Refresh token data",
+                        "name": "login",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.ReqRefreshToken"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schema.RespRefreshToken"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/signup": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Авторизация"
+                ],
+                "summary": "Регистрация пользователя",
+                "parameters": [
+                    {
+                        "description": "Signup data",
+                        "name": "login",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.ReqSignUp"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    }
+                }
+            }
+        },
+        "/feed": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Пользователи"
+                ],
+                "summary": "Лента пользователя",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.UserFeed"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/place-evaluation-criterions": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Заведения"
+                ],
+                "summary": "Критерии оценивания заведения",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.EvaluationCriterion"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/place-review-media": {
+            "post": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Заведения"
+                ],
+                "summary": "Загрузить медиа-файл для отзыва заведения",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "media file",
+                        "name": "media",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ReviewMedia"
+                        }
+                    }
+                }
+            }
+        },
+        "/place-review-medias/{id}/data": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Заведения"
+                ],
+                "summary": "Медиа-файл отзыва",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "review media id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/places": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Заведения"
+                ],
+                "summary": "Список ресторанов в заданном диапазоне координат.",
+                "parameters": [
+                    {
+                        "type": "number",
+                        "description": "left_lng",
+                        "name": "left_lng",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "right_lng",
+                        "name": "right_lng",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "bottom_lat",
+                        "name": "bottom_lat",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "top_lat",
+                        "name": "top_lat",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Place"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/places/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Заведения"
+                ],
+                "summary": "Ресторан по id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Place ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Place"
+                        }
+                    }
+                }
+            }
+        },
+        "/places/{id}/evaluation": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Заведения"
+                ],
+                "summary": "Достать оценку заведения от данного пользователя",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id заведения",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PlaceEvaluation"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Заведения"
+                ],
+                "summary": "Оценить заведение",
+                "parameters": [
+                    {
+                        "description": "evaluation place data",
+                        "name": "evaluatePlace",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.ReqEvaluatePlace"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id заведения",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PlaceEvaluation"
+                        }
+                    }
+                }
+            }
+        },
+        "/places/{id}/menu": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Заведения"
+                ],
+                "summary": "Меню заведения",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id заведения",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.PlaceMenu"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/places/{id}/posts": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Заведения"
+                ],
+                "summary": "Объявления заведения",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id заведения",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id последнего полученного объявления данного заведения",
+                        "name": "last_review_id",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 50,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 20,
+                        "description": "лимит отдаваемых записей",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Advert"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/places/{id}/review": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Заведения"
+                ],
+                "summary": "Загрузить медиа-файл для отзыва заведения",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "place id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "place review data",
+                        "name": "reviewMedia",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.ReqAddPlaceReview"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ReviewMedia"
+                        }
+                    }
+                }
+            }
+        },
+        "/places/{id}/subscribe": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Пользователи"
+                ],
+                "summary": "Подписаться на заведение",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id заведения",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/places/{id}/unsubscribe": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Заведения"
+                ],
+                "summary": "Отписаться от заведения",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id заведения",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/users/:id/subscriptions": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Пользователи"
+                ],
+                "summary": "Список пользователей, на которых подписан данный пользователь",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.UserSubscription"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}/place-reviews": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Пользователи"
+                ],
+                "summary": "Список отзывов данного пользователя",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Review"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}/place-subscriptions": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Пользователи"
+                ],
+                "summary": "Список заведений, на которые подписан данный пользователь",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.UserPlaceSubscription"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}/posts": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Пользователи"
+                ],
+                "summary": "Отзывы конкретного пользователя",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id пользователя",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id последнего полученного отзыва данного пользователя",
+                        "name": "last_review_id",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 50,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 20,
+                        "description": "лимит отдаваемых записей",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Review"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}/subscribe": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Пользователи"
+                ],
+                "summary": "Подписаться на пользователя",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id пользователя, на которого хотим подписаться",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.UserSubscription"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}/unsubscribe": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Пользователи"
+                ],
+                "summary": "Отписаться от пользователя",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "id пользователя, от которого хотим отписаться",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.Advert": {
+            "type": "object",
+            "properties": {
+                "advert_id": {
+                    "type": "integer"
+                },
+                "advert_medias": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.AdvertMedia"
+                    }
+                },
+                "place_id": {
+                    "type": "integer"
+                },
+                "publish_datetime": {
+                    "type": "string"
+                },
+                "restaurateur_id": {
+                    "type": "integer"
+                },
+                "text": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.AdvertMedia": {
+            "type": "object",
+            "properties": {
+                "advert_media_id": {
+                    "type": "integer"
+                },
+                "media_path": {
+                    "type": "string"
+                },
+                "media_type": {
+                    "type": "string",
+                    "enum": [
+                        "photo",
+                        "video"
+                    ]
+                },
+                "place_id": {
+                    "type": "integer"
+                },
+                "restaurateur_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.Category": {
+            "type": "object",
+            "properties": {
+                "category_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.EvaluationCriterion": {
+            "type": "object",
+            "properties": {
+                "evaluation_criterion_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.KitchenCategory": {
+            "type": "object",
+            "properties": {
+                "kitchen_category_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Place": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "categories": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Category"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "kitchen_categories": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.KitchenCategory"
+                    }
+                },
+                "lat": {
+                    "type": "number"
+                },
+                "lng": {
+                    "type": "number"
+                },
+                "mark_amount": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "place_id": {
+                    "type": "integer"
+                },
+                "place_medias": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.PlaceMedia"
+                    }
+                },
+                "place_schedules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.PlaceSchedule"
+                    }
+                },
+                "rating": {
+                    "type": "number"
+                },
+                "website": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.PlaceEvaluation": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "datetime": {
+                    "type": "string"
+                },
+                "place_evaluation_id": {
+                    "type": "integer"
+                },
+                "place_evaluation_marks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.PlaceEvaluationMark"
+                    }
+                },
+                "place_id": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.PlaceEvaluationMark": {
+            "type": "object",
+            "properties": {
+                "evaluation_criterion_id": {
+                    "type": "integer"
+                },
+                "mark": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.PlaceMedia": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "media_path": {
+                    "type": "string"
+                },
+                "media_type": {
+                    "type": "string",
+                    "enum": [
+                        "photo",
+                        "video"
+                    ]
+                },
+                "place_id": {
+                    "type": "integer"
+                },
+                "place_media_id": {
+                    "type": "integer"
+                },
+                "publish_datetime": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.PlaceMenu": {
+            "type": "object",
+            "properties": {
+                "place_id": {
+                    "type": "integer"
+                },
+                "place_menu_categories": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.PlaceMenuCategory"
+                    }
+                }
+            }
+        },
+        "models.PlaceMenuCategory": {
+            "type": "object",
+            "properties": {
+                "category_name": {
+                    "type": "string"
+                },
+                "load_datetime": {
+                    "type": "string"
+                },
+                "order": {
+                    "type": "integer"
+                },
+                "place_id": {
+                    "type": "integer"
+                },
+                "place_menu_category_id": {
+                    "type": "integer"
+                },
+                "place_menu_items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.PlaceMenuItem"
+                    }
+                },
+                "publish_datetime": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.PlaceMenuItem": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "load_datetime": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "order": {
+                    "type": "integer"
+                },
+                "place_menu_category_id": {
+                    "type": "integer"
+                },
+                "place_menu_item_id": {
+                    "type": "integer"
+                },
+                "place_menu_item_media": {
+                    "$ref": "#/definitions/models.PlaceMenuItemMedia"
+                },
+                "place_menu_item_media_id": {
+                    "type": "integer"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "publish_datetime": {
+                    "type": "string"
+                },
+                "weight": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.PlaceMenuItemMedia": {
+            "type": "object",
+            "properties": {
+                "load_datetime": {
+                    "type": "string"
+                },
+                "media_path": {
+                    "type": "string"
+                },
+                "media_type": {
+                    "type": "string",
+                    "enum": [
+                        "photo",
+                        "video"
+                    ]
+                },
+                "place_menu_item_media_id": {
+                    "type": "integer"
+                },
+                "restaurateur_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.PlaceSchedule": {
+            "type": "object",
+            "properties": {
+                "date_start": {
+                    "type": "string"
+                },
+                "date_stop": {
+                    "type": "string"
+                },
+                "day_of_week": {
+                    "type": "integer"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "place_id": {
+                    "type": "integer"
+                },
+                "place_schedule_id": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Review": {
+            "type": "object",
+            "properties": {
+                "place_id": {
+                    "type": "integer"
+                },
+                "publish_datetime": {
+                    "type": "string"
+                },
+                "review_id": {
+                    "type": "integer"
+                },
+                "review_medias": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ReviewMedia"
+                    }
+                },
+                "text": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.ReviewMedia": {
+            "type": "object",
+            "properties": {
+                "media_path": {
+                    "type": "string"
+                },
+                "media_type": {
+                    "type": "string",
+                    "enum": [
+                        "photo",
+                        "video"
+                    ]
+                },
+                "review_media_id": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.User": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "email_verified": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "phone_verified": {
+                    "type": "boolean"
+                },
+                "photo_path": {
+                    "type": "string"
+                },
+                "reg_datetime": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.UserFeed": {
+            "type": "object",
+            "properties": {
+                "advert": {
+                    "$ref": "#/definitions/models.Advert"
+                },
+                "advert_id": {
+                    "type": "integer"
+                },
+                "followed_user_id": {
+                    "type": "integer"
+                },
+                "place_id": {
+                    "type": "integer"
+                },
+                "publish_datetime": {
+                    "type": "string"
+                },
+                "restaurateur_id": {
+                    "type": "integer"
+                },
+                "review": {
+                    "$ref": "#/definitions/models.Review"
+                },
+                "review_id": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.UserPlaceSubscription": {
+            "type": "object",
+            "properties": {
+                "place_id": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.UserSubscription": {
+            "type": "object",
+            "properties": {
+                "followed_user_id": {
+                    "type": "integer"
+                },
+                "follower_user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "schema.ApprovePhone": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "schema.ReqAddPlaceReview": {
+            "type": "object",
+            "properties": {
+                "review_media_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "text": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.ReqEvaluatePlace": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "place_evaluation_marks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.PlaceEvaluationMark"
+                    }
+                }
+            }
+        },
+        "schema.ReqLogin": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.ReqRefreshToken": {
+            "type": "object",
+            "properties": {
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.ReqSignUp": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.RespLogin": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "schema.RespRefreshToken": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

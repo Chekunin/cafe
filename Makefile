@@ -66,3 +66,8 @@ start: build-absent docker/create-network ## Run docker conteiner with App
 
 stop: ## Stop docker container with App
 	@docker-compose down --remove-orphans
+
+swagger-update: ## Update swagger docs
+	@echo "##### Updating swagger docs #####"
+	@echo "Updating docs for client_gateway_service..."
+	@swag init --parseDependency --parseDepth 3 -g main.go -d ./cmd/client_gateway_service -o ./doc/client_gateway_service/v1

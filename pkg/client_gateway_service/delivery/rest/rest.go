@@ -7,6 +7,9 @@ import (
 	"fmt"
 	wrapErr "github.com/Chekunin/wraperr"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"net/http"
 )
 
@@ -27,51 +30,63 @@ func NewRest(router *gin.RouterGroup, usecase *usecase.Usecase, clientSso client
 }
 
 func (r *rest) routes(router *gin.RouterGroup) {
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	router.POST("/auth/login", r.handlerLogin)
 	router.POST("/auth/refresh-token", r.handlerRefreshToken)
 	router.POST("/auth/signup", r.handlerSignUp)
 	router.POST("/auth/approve-phone", r.handlerApprovePhone)
 
 	router.GET("/places", r.handlerGetPlaces)
-	router.GET("/place-by-id/:id", r.handlerGetPlaceByID)
+	router.GET("/places/:id", r.handlerGetPlaceByID)
 
-	router.GET("/places/review-media/:id/data", r.handlerGetPlaceReviewMediaData)
+	router.GET("/place-review-medias/:id/data", r.handlerGetPlaceReviewMediaData)
 
-	router.GET("/places/evaluation/criterions", r.handlerGetPlaceEvaluationCriterions)
+	router.GET("/place-evaluation-criterions", r.handlerGetPlaceEvaluationCriterions)
 
 	// записи конкретного пользователя
-	router.GET("/user/:id/posts", r.handlerGetPlacesReviewsByUserID)
+	router.GET("/users/:id/posts", r.handlerGetPlacesReviewsByUserID)
 
 	// записи конкретного заведения
-	router.GET("/place/:id/posts", r.handlerGetPlaceAdvertsByPlaceID)
+	router.GET("/places/:id/posts", r.handlerGetPlaceAdvertsByPlaceID)
 
 	router.GET("/places/:id/menu", r.handlerGetPlaceMenu)
 
 	authorized := router.Group("/")
 	authorized.Use(r.authMiddleware())
 	authorized.POST("/auth/logout", r.handlerLogout)
-	authorized.GET("/users/subscriptions", r.handlerGetUserSubscriptions)
-	authorized.POST("/user/:id/subscribe", r.handlerSubscribeToUser)
-	authorized.POST("/user/:id/unsubscribe", r.handlerUnsubscribeFromUser)
+	authorized.GET("/users/:id/subscriptions", r.handlerGetUserSubscriptions)
+	authorized.POST("/users/:id/subscribe", r.handlerSubscribeToUser)
+	authorized.POST("/users/:id/unsubscribe", r.handlerUnsubscribeFromUser)
 
-	authorized.GET("/places/subscriptions", r.handlerGetPlaceSubscriptions)
-	authorized.POST("/place/:id/subscribe", r.handlerSubscribeToPlace)
-	authorized.POST("/place/:id/unsubscribe", r.handlerUnsubscribeFromPlace)
+	authorized.GET("/users/:id/place-subscriptions", r.handlerGetPlaceSubscriptions)
+	authorized.POST("/places/:id/subscribe", r.handlerSubscribeToPlace)
+	authorized.POST("/places/:id/unsubscribe", r.handlerUnsubscribeFromPlace)
 
-	authorized.POST("/place/:id/evaluation", r.handlerEvaluatePlace)
-	authorized.GET("/place/:id/evaluation", r.handlerGetPlaceEvaluation)
+	authorized.POST("/places/:id/evaluation", r.handlerEvaluatePlace)
+	authorized.GET("/places/:id/evaluation", r.handlerGetPlaceEvaluation)
 
-	authorized.GET("/place/:id/evaluations", r.handlerGetPlaceEvaluations)
+	authorized.GET("/places/:id/evaluations", r.handlerGetPlaceEvaluations)
 
-	authorized.POST("/places/review-media", r.handlerAddPlaceReviewMedia)
-	authorized.POST("/place/:id/review", r.handlerAddPlaceReview)
+	authorized.POST("/place-review-media", r.handlerAddPlaceReviewMedia)
+	authorized.POST("/places/:id/review", r.handlerAddPlaceReview)
 
 	// запрос на получение своих собственных записей
-	authorized.GET("/places/reviews", r.handlerGetOwnPlacesReviews)
+	authorized.GET("/users/:id/place-reviews", r.handlerGetOwnPlacesReviews)
 	// запрос на получение своей ленты (главной страницы с чужими записями)
 	authorized.GET("/feed", r.handlerGetUserFeed)
 }
 
+// Places godoc
+// @Summary Список ресторанов в заданном диапазоне координат.
+// @Tags Заведения
+// @Produce json
+// @Param left_lng query float64 true "left_lng"
+// @Param right_lng query float64 true "right_lng"
+// @Param bottom_lat query float64 true "bottom_lat"
+// @Param top_lat query float64 true "top_lat"
+// @Success 200 {array} models.Place
+// @Router /places [get]
 func (r *rest) handlerGetPlaces(c *gin.Context) {
 	var req struct {
 		LeftLng   float64 `form:"left_lng"`
@@ -95,6 +110,13 @@ func (r *rest) handlerGetPlaces(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Convert(places, modelTag))
 }
 
+// Places godoc
+// @Summary Ресторан по id
+// @Tags Заведения
+// @Produce json
+// @Param id path int true "Place ID"
+// @Success 200 {object} models.Place
+// @Router /places/{id} [get]
 func (r *rest) handlerGetPlaceByID(c *gin.Context) {
 	var req struct {
 		PlaceID int `uri:"id" binding:"required"`

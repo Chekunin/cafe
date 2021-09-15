@@ -1,0 +1,956 @@
+basePath: /client-gateway/v1
+definitions:
+  models.Advert:
+    properties:
+      advert_id:
+        type: integer
+      advert_medias:
+        items:
+          $ref: '#/definitions/models.AdvertMedia'
+        type: array
+      place_id:
+        type: integer
+      publish_datetime:
+        type: string
+      restaurateur_id:
+        type: integer
+      text:
+        type: string
+    type: object
+  models.AdvertMedia:
+    properties:
+      advert_media_id:
+        type: integer
+      media_path:
+        type: string
+      media_type:
+        enum:
+        - photo
+        - video
+        type: string
+      place_id:
+        type: integer
+      restaurateur_id:
+        type: integer
+    type: object
+  models.Category:
+    properties:
+      category_id:
+        type: integer
+      name:
+        type: string
+    type: object
+  models.EvaluationCriterion:
+    properties:
+      evaluation_criterion_id:
+        type: integer
+      name:
+        type: string
+    type: object
+  models.KitchenCategory:
+    properties:
+      kitchen_category_id:
+        type: integer
+      name:
+        type: string
+    type: object
+  models.Place:
+    properties:
+      address:
+        type: string
+      categories:
+        items:
+          $ref: '#/definitions/models.Category'
+        type: array
+      description:
+        type: string
+      kitchen_categories:
+        items:
+          $ref: '#/definitions/models.KitchenCategory'
+        type: array
+      lat:
+        type: number
+      lng:
+        type: number
+      mark_amount:
+        type: integer
+      name:
+        type: string
+      place_id:
+        type: integer
+      place_medias:
+        items:
+          $ref: '#/definitions/models.PlaceMedia'
+        type: array
+      place_schedules:
+        items:
+          $ref: '#/definitions/models.PlaceSchedule'
+        type: array
+      rating:
+        type: number
+      website:
+        type: string
+    type: object
+  models.PlaceEvaluation:
+    properties:
+      comment:
+        type: string
+      datetime:
+        type: string
+      place_evaluation_id:
+        type: integer
+      place_evaluation_marks:
+        items:
+          $ref: '#/definitions/models.PlaceEvaluationMark'
+        type: array
+      place_id:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  models.PlaceEvaluationMark:
+    properties:
+      evaluation_criterion_id:
+        type: integer
+      mark:
+        type: string
+    type: object
+  models.PlaceMedia:
+    properties:
+      comment:
+        type: string
+      media_path:
+        type: string
+      media_type:
+        enum:
+        - photo
+        - video
+        type: string
+      place_id:
+        type: integer
+      place_media_id:
+        type: integer
+      publish_datetime:
+        type: string
+    type: object
+  models.PlaceMenu:
+    properties:
+      place_id:
+        type: integer
+      place_menu_categories:
+        items:
+          $ref: '#/definitions/models.PlaceMenuCategory'
+        type: array
+    type: object
+  models.PlaceMenuCategory:
+    properties:
+      category_name:
+        type: string
+      load_datetime:
+        type: string
+      order:
+        type: integer
+      place_id:
+        type: integer
+      place_menu_category_id:
+        type: integer
+      place_menu_items:
+        items:
+          $ref: '#/definitions/models.PlaceMenuItem'
+        type: array
+      publish_datetime:
+        type: string
+    type: object
+  models.PlaceMenuItem:
+    properties:
+      description:
+        type: string
+      load_datetime:
+        type: string
+      name:
+        type: string
+      order:
+        type: integer
+      place_menu_category_id:
+        type: integer
+      place_menu_item_id:
+        type: integer
+      place_menu_item_media:
+        $ref: '#/definitions/models.PlaceMenuItemMedia'
+      place_menu_item_media_id:
+        type: integer
+      price:
+        type: integer
+      publish_datetime:
+        type: string
+      weight:
+        type: integer
+    type: object
+  models.PlaceMenuItemMedia:
+    properties:
+      load_datetime:
+        type: string
+      media_path:
+        type: string
+      media_type:
+        enum:
+        - photo
+        - video
+        type: string
+      place_menu_item_media_id:
+        type: integer
+      restaurateur_id:
+        type: integer
+    type: object
+  models.PlaceSchedule:
+    properties:
+      date_start:
+        type: string
+      date_stop:
+        type: string
+      day_of_week:
+        type: integer
+      end_time:
+        type: string
+      place_id:
+        type: integer
+      place_schedule_id:
+        type: integer
+      start_time:
+        type: string
+    type: object
+  models.Review:
+    properties:
+      place_id:
+        type: integer
+      publish_datetime:
+        type: string
+      review_id:
+        type: integer
+      review_medias:
+        items:
+          $ref: '#/definitions/models.ReviewMedia'
+        type: array
+      text:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  models.ReviewMedia:
+    properties:
+      media_path:
+        type: string
+      media_type:
+        enum:
+        - photo
+        - video
+        type: string
+      review_media_id:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  models.User:
+    properties:
+      email:
+        type: string
+      email_verified:
+        type: boolean
+      name:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      phone_verified:
+        type: boolean
+      photo_path:
+        type: string
+      reg_datetime:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  models.UserFeed:
+    properties:
+      advert:
+        $ref: '#/definitions/models.Advert'
+      advert_id:
+        type: integer
+      followed_user_id:
+        type: integer
+      place_id:
+        type: integer
+      publish_datetime:
+        type: string
+      restaurateur_id:
+        type: integer
+      review:
+        $ref: '#/definitions/models.Review'
+      review_id:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  models.UserPlaceSubscription:
+    properties:
+      place_id:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  models.UserSubscription:
+    properties:
+      followed_user_id:
+        type: integer
+      follower_user_id:
+        type: integer
+    type: object
+  schema.ApprovePhone:
+    properties:
+      code:
+        type: string
+      phone:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  schema.ReqAddPlaceReview:
+    properties:
+      review_media_ids:
+        items:
+          type: integer
+        type: array
+      text:
+        type: string
+    type: object
+  schema.ReqEvaluatePlace:
+    properties:
+      comment:
+        type: string
+      place_evaluation_marks:
+        items:
+          $ref: '#/definitions/models.PlaceEvaluationMark'
+        type: array
+    type: object
+  schema.ReqLogin:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  schema.ReqRefreshToken:
+    properties:
+      refresh_token:
+        type: string
+    type: object
+  schema.ReqSignUp:
+    properties:
+      password:
+        type: string
+      phone:
+        type: string
+      username:
+        type: string
+    type: object
+  schema.RespLogin:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  schema.RespRefreshToken:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: Gateway service for simple users
+  title: Client gateway service
+  version: "1.0"
+paths:
+  /auth/approve-phone:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ApprovePhone data
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/schema.ApprovePhone'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Подтверждение номера телефона
+      tags:
+      - Авторизация
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Login data
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/schema.ReqLogin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schema.RespLogin'
+      summary: Логин
+      tags:
+      - Авторизация
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Деавторизация
+      tags:
+      - Авторизация
+  /auth/refresh-token:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Refresh token data
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/schema.ReqRefreshToken'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schema.RespRefreshToken'
+      summary: Обновление токена
+      tags:
+      - Авторизация
+  /auth/signup:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Signup data
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/schema.ReqSignUp'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+      summary: Регистрация пользователя
+      tags:
+      - Авторизация
+  /feed:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.UserFeed'
+            type: array
+      summary: Лента пользователя
+      tags:
+      - Пользователи
+  /place-evaluation-criterions:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.EvaluationCriterion'
+            type: array
+      summary: Критерии оценивания заведения
+      tags:
+      - Заведения
+  /place-review-media:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: media file
+        in: formData
+        name: media
+        required: true
+        type: file
+      - description: Authorization token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ReviewMedia'
+      summary: Загрузить медиа-файл для отзыва заведения
+      tags:
+      - Заведения
+  /place-review-medias/{id}/data:
+    get:
+      parameters:
+      - description: review media id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: integer
+            type: array
+      summary: Медиа-файл отзыва
+      tags:
+      - Заведения
+  /places:
+    get:
+      parameters:
+      - description: left_lng
+        in: query
+        name: left_lng
+        required: true
+        type: number
+      - description: right_lng
+        in: query
+        name: right_lng
+        required: true
+        type: number
+      - description: bottom_lat
+        in: query
+        name: bottom_lat
+        required: true
+        type: number
+      - description: top_lat
+        in: query
+        name: top_lat
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Place'
+            type: array
+      summary: Список ресторанов в заданном диапазоне координат.
+      tags:
+      - Заведения
+  /places/{id}:
+    get:
+      parameters:
+      - description: Place ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Place'
+      summary: Ресторан по id
+      tags:
+      - Заведения
+  /places/{id}/evaluation:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: id заведения
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PlaceEvaluation'
+      summary: Достать оценку заведения от данного пользователя
+      tags:
+      - Заведения
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: evaluation place data
+        in: body
+        name: evaluatePlace
+        required: true
+        schema:
+          $ref: '#/definitions/schema.ReqEvaluatePlace'
+      - description: Authorization token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: id заведения
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PlaceEvaluation'
+      summary: Оценить заведение
+      tags:
+      - Заведения
+  /places/{id}/menu:
+    get:
+      parameters:
+      - description: id заведения
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.PlaceMenu'
+            type: array
+      summary: Меню заведения
+      tags:
+      - Заведения
+  /places/{id}/posts:
+    get:
+      parameters:
+      - description: id заведения
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: id последнего полученного объявления данного заведения
+        in: query
+        name: last_review_id
+        type: integer
+      - default: 20
+        description: лимит отдаваемых записей
+        in: query
+        maximum: 50
+        minimum: 1
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Advert'
+            type: array
+      summary: Объявления заведения
+      tags:
+      - Заведения
+  /places/{id}/review:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: place id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: place review data
+        in: body
+        name: reviewMedia
+        required: true
+        schema:
+          $ref: '#/definitions/schema.ReqAddPlaceReview'
+      - description: Authorization token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ReviewMedia'
+      summary: Загрузить медиа-файл для отзыва заведения
+      tags:
+      - Заведения
+  /places/{id}/subscribe:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: id заведения
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Подписаться на заведение
+      tags:
+      - Пользователи
+  /places/{id}/unsubscribe:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: id заведения
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Отписаться от заведения
+      tags:
+      - Заведения
+  /users/:id/subscriptions:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.UserSubscription'
+            type: array
+      summary: Список пользователей, на которых подписан данный пользователь
+      tags:
+      - Пользователи
+  /users/{id}/place-reviews:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Review'
+            type: array
+      summary: Список отзывов данного пользователя
+      tags:
+      - Пользователи
+  /users/{id}/place-subscriptions:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.UserPlaceSubscription'
+            type: array
+      summary: Список заведений, на которые подписан данный пользователь
+      tags:
+      - Пользователи
+  /users/{id}/posts:
+    get:
+      parameters:
+      - description: id пользователя
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: id последнего полученного отзыва данного пользователя
+        in: query
+        name: last_review_id
+        type: integer
+      - default: 20
+        description: лимит отдаваемых записей
+        in: query
+        maximum: 50
+        minimum: 1
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Review'
+            type: array
+      summary: Отзывы конкретного пользователя
+      tags:
+      - Пользователи
+  /users/{id}/subscribe:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: id пользователя, на которого хотим подписаться
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.UserSubscription'
+            type: array
+      summary: Подписаться на пользователя
+      tags:
+      - Пользователи
+  /users/{id}/unsubscribe:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authorization token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: id пользователя, от которого хотим отписаться
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Отписаться от пользователя
+      tags:
+      - Пользователи
+swagger: "2.0"
