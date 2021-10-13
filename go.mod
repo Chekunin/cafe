@@ -1,6 +1,6 @@
 module cafe
 
-go 1.15
+go 1.17
 
 require (
 	github.com/Chekunin/wraperr v0.1.1

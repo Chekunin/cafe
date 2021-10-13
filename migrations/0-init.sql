@@ -120,6 +120,14 @@ create table main.places_kitchen_categories (
                                                 primary key (place_id, kitchen_category_id)
 );
 
+create table main.restaurateurs (
+                                    restaurateur_id serial primary key,
+                                    email varchar(255) unique,
+                                    password varchar(255),
+                                    email_verified bool not null default false,
+                                    reg_datetime timestamptz not null default now()
+);
+
 create table main.adverts (
                               advert_id serial primary key,
                               place_id int references main.places(place_id) not null,
@@ -158,14 +166,6 @@ create table main.user_phone_codes (
                                        left_attempts integer not null default 0
 );
 CREATE UNIQUE INDEX ON main.user_phone_codes (user_id, actual) WHERE (actual is true);
-
-create table main.restaurateurs (
-                                    restaurateur_id serial primary key,
-                                    email varchar(255) unique,
-                                    password varchar(255),
-                                    email_verified bool not null default false,
-                                    reg_datetime timestamptz not null default now()
-);
 
 create table main.restaurateur_roles (
                                          restaurateur_role_id serial primary key,
@@ -232,7 +232,6 @@ create table main.place_menu_categories (
 );
 
 CREATE INDEX ON main.place_menu_categories (place_id, "order");
-CREATE INDEX ON main.place_menu_items (publish_datetime);
 
 create table main.place_menu_item_medias (
                                              place_menu_item_media_id serial primary key,
@@ -255,6 +254,7 @@ create table main.place_menu_items (
                                        publish_datetime timestamptz not null default now()
 );
 
+CREATE INDEX ON main.place_menu_items (publish_datetime);
 CREATE INDEX ON main.place_menu_items (place_menu_category_id, "order");
 
 -- +migrate Down
