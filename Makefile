@@ -1,4 +1,4 @@
-MODULE = merlin
+MODULE = cafe
 VERSION = $(shell git describe --tags --always --dirty)
 OS = $(shell uname | tr A-Z a-z)
 BUILD_IMAGE ?= golang:1.17
@@ -43,7 +43,7 @@ build/%:
 				GOMODCACHE=/gocache/mod \
 				GOCACHE=/gocache/build \
 			&& GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" \
-				go build -v -o bin/$* cmd/*.go \
+				go build -v -o bin/$* cmd/main.go \
 		' \
 		&& echo 'Build for "$*" is completed'
 
@@ -52,9 +52,9 @@ build: $(addprefix build/, $(SERVICES)) ## Build all app binaries
 build-absent: $(addprefix build/, $(ABSENT_BINARIES)) ## Build absent app binaries
 
 docker/create-network: ## Create global docker network for app services
-	@docker network create merlin || true
+	@docker network create cafe || true
 
-start: build-absent docker/create-network ## Run docker conteiner with App
+start: build-absent docker/create-network ## Run docker container with App
 	@docker-compose up -d
 	@if ! docker-compose exec db sh -c '\
 				psql -t -U $${POSTGRES_USER} -d $${POSTGRES_DB} -c "SELECT 1;" \
@@ -66,6 +66,11 @@ start: build-absent docker/create-network ## Run docker conteiner with App
 
 stop: ## Stop docker container with App
 	@docker-compose down --remove-orphans
+
+db/seed: ## Seed DB with data
+	@echo -n "Seeding DB with data... "
+	@docker-compose exec db sh -c 'psql -U $${POSTGRES_USER} -d $${POSTGRES_DB} -f /app/db/seeders/dev.sql > /dev/null'
+	@echo "Done!"
 
 swagger-update: ## Update swagger docs
 	@echo "##### Updating swagger docs #####"
