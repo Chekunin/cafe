@@ -18,24 +18,28 @@ ABSENT_BINARIES = $(shell BINARIES="$(shell [ -d bin ] && ls bin)"; \
 		restart \
 		start \
 		stop \
-		test
+		test \
+		test123
+test123:
+	echo $(PWD)
+	echo $(CURDIR)
 
 build/%:
 	@echo 'Building "$*"... '
-	@mkdir -p $(PWD)/bin && \
+	@mkdir -p $(CURDIR)/bin && \
 	docker run \
 		-i \
 		--rm \
 		-e SSH_AUTH_SOCK=$(SSH_AUTH_SOCK) \
 		-v $(SSH_AUTH_SOCK):$(SSH_AUTH_SOCK):ro \
 		-v cafe_gocache:/gocache \
-		-v $(PWD)/cmd/$*:/opt/app/cmd \
-		-v $(PWD)/pkg:/opt/app/pkg \
-		-v $(PWD)/doc:/opt/app/doc \
-		-v $(PWD)/go.mod:/opt/app/go.mod \
-		-v $(PWD)/go.sum:/opt/app/go.sum \
-		-v $(PWD)/configs/$*/config.yaml:/opt/app/config.yaml \
-		-v $(PWD)/bin:/opt/app/bin \
+		-v $(CURDIR)/cmd/$*:/opt/app/cmd \
+		-v $(CURDIR)/pkg:/opt/app/pkg \
+		-v $(CURDIR)/doc:/opt/app/doc \
+		-v $(CURDIR)/go.mod:/opt/app/go.mod \
+		-v $(CURDIR)/go.sum:/opt/app/go.sum \
+		-v $(CURDIR)/configs/$*/config.yaml:/opt/app/config.yaml \
+		-v $(CURDIR)/bin:/opt/app/bin \
 		$(BUILD_IMAGE) \
 		sh -c '\
 			cd /opt/app \
