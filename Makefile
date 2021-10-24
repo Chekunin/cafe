@@ -18,11 +18,7 @@ ABSENT_BINARIES = $(shell BINARIES="$(shell [ -d bin ] && ls bin)"; \
 		restart \
 		start \
 		stop \
-		test \
-		test123
-test123:
-	echo $(PWD)
-	echo $(CURDIR)
+		test
 
 build/%:
 	@echo 'Building "$*"... '
@@ -70,6 +66,8 @@ start: build-absent docker/create-network ## Run docker container with App
 
 stop: ## Stop docker container with App
 	@docker-compose down --remove-orphans
+
+restart: stop start
 
 db/seed: ## Seed DB with data
 	@echo -n "Seeding DB with data... "
