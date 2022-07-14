@@ -19,8 +19,8 @@ logChannels:
     driver: zap
 
 s3:
-  access_id: "AKIAV2FWCOYKYT7U23L4"
-  access_key: "YCRxdzPj7eq32R/NWSUVzKM6yABLLHzN6zvzQcWe"
+  access_id: ""
+  access_key: ""
   region: "eu-north-1"
   bucket: "cafe-revision-media"
   s3_force_path_style: false
